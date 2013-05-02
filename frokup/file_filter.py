@@ -21,7 +21,10 @@ class FileFilter():
 
     def include_file(self, directory, filename):
         """Returns True if the file must be included in the backup, False otherwise"""
-        logger.debug("Accepting '%s/%s'", directory, filename)
+        if filename == '.frokup.db':
+            logger.debug("Excluding '%s/%s'", directory, filename)
+            return False
+        logger.debug("Including '%s/%s'", directory, filename)
         return True
 
 
