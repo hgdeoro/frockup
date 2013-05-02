@@ -81,15 +81,14 @@ class LocalMetadata():
         try:
             data = self.database[filename]
         except KeyError:
-            self.database[filename] = {}
-            data = self.database[filename]
+            data = {}
 
         if self._file_stats_and_local_metadata_equals(file_stats, data):
-            logger.debug("Including %s/%s", directory, filename)
-            return FileStats(file_stats)
-        else:
-            logger.debug("Excluding %s/%s", directory, filename)
+            logger.debug("Excluding %s/%s (metadata are equals)", directory, filename)
             return False
+        else:
+            logger.debug("Including %s/%s (metadata differ or don't exists)", directory, filename)
+            return FileStats(file_stats)
 
     def update_metadata(self, directory, filename, file_stats, glacier_data):
         """Update the local metadata with the data returned by glacier"""
@@ -99,12 +98,14 @@ class LocalMetadata():
         self._opendb(directory)
         try:
             data = self.database[filename]
+            logger.debug("Entry exists in local metadata DB for file %s", filename)
         except KeyError:
-            self.database[filename] = {}
-            data = self.database[filename]
+            logger.debug("Creating new entry in local metadata DB for file %s", filename)
+            data = {}
         data['archive_id'] = glacier_data.archive_id
         data['stats.st_size'] = file_stats.stats.st_size
         data['stats.st_mtime'] = file_stats.stats.st_mtime
+        self.database[filename] = data
         self.database.sync()
 
         current_stats = os.stat(os.path.join(directory, filename))
