@@ -7,6 +7,7 @@ Created on May 1, 2013
 import logging as logging_
 import shelve
 import os
+from frokup.glacier import GlacierData
 
 logger = logging_.getLogger(__name__)
 
@@ -52,8 +53,15 @@ class LocalMetadata():
     def update_metadata(self, directory, filename, glacier_data):
         """Update the local metadata with the data returned by glacier"""
         logger.debug("Updating metadata for file '%s/%s'", directory, filename)
+        assert isinstance(glacier_data, GlacierData)
         self._opendb(directory)
-        return
+        try:
+            data = self.database[filename]
+        except KeyError:
+            self.database[filename] = {}
+            data = self.database[filename]
+        data['archive_id'] = glacier_data.archive_id
+        self.database.sync()
 
     def close(self):
         if self.database:

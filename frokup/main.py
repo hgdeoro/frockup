@@ -9,7 +9,7 @@ import logging as logging_
 
 from frokup.common import Context
 from frokup.file_filter import FileFilter
-from frokup.glacier import Glacier
+from frokup.glacier import Glacier, GlacierData
 from frokup.local_metadata import LocalMetadata
 
 logger = logging_.getLogger(__name__)
