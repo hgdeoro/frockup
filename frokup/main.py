@@ -4,6 +4,7 @@ Created on May 1, 2013
 @author: Horacio G. de Oro
 '''
 
+import argparse
 import os
 import logging as logging_
 
@@ -76,7 +77,28 @@ class Main():
 
 
 def main():
-    Main().process_directory(os.path.split(__file__)[0])
+    parser = argparse.ArgumentParser(description='Backup files to Glacier')
+    parser.add_argument('--include', dest='include',
+        help="File extensions to include, separated by commas (ej: jpg,JPG)")
+    parser.add_argument('--exclude', dest='exclude',
+        help="File extensions to exclude, separated by commas (ej: avi,AVI,mov,MOV,xcf,XCF)")
+    parser.add_argument('directory', nargs='+', metavar='DIRECTORY',
+        help="Directory to backup")
+
+    args = parser.parse_args()
+    main = Main()
+
+    if args.include and args.exclude:
+        parser.error("Can't use --include and --exclude at the same time.")
+        return
+    elif args.include:
+        main.ctx.set_include_extensions(args.include.split(','))
+    elif args.exclude:
+        main.ctx.set_exclude_extensions(args.exclude.split(','))
+
+    for a_directory in args.directory:
+        main.process_directory(a_directory)
+    main.close()
 
 if __name__ == '__main__':
     logging_.basicConfig(level=logging_.DEBUG)

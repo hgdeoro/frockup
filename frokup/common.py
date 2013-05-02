@@ -17,6 +17,8 @@ class Context(dict):
         self.excluded_count = 0
         self.included_count = 0
         self.error_count = 0
+        self.include_extensions = []
+        self.exclude_extensions = []
 
     def add_log(self, directory, filename, **kwargs):
         self.log[directory] = self.log.get(directory, dict())
@@ -36,3 +38,11 @@ class Context(dict):
         self.add_log(directory, filename, error=True, error_type=error_type,
             error_message=error_message)
         self.error_count += 1
+
+    def set_include_extensions(self, extensions):
+        assert isinstance(extensions, (list, tuple))
+        self.include_extensions = extensions
+
+    def set_exclude_extensions(self, extensions):
+        assert isinstance(extensions, (list, tuple))
+        self.exclude_extensions = extensions
