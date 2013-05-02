@@ -16,9 +16,9 @@ class Glacier():
     def __init__(self, ctx):
         self.ctx = ctx
 
-    def upload_file(self, filename):
+    def upload_file(self, directory, filename):
         """Uploads a file to glacier. Returns the archiveID"""
-        logger.debug("Uploading file '%s'", filename)
+        logger.debug("Uploading file '%s/%s'", directory, filename)
         return ""
 
 
@@ -27,5 +27,5 @@ class GlacierMock():
     def __init__(self, ctx):
         self.ctx = ctx
 
-    def upload_file(self, filename):
+    def upload_file(self, directory, filename):
         return uuid.uuid4()

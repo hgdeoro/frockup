@@ -19,9 +19,9 @@ class FileFilter():
     def __init__(self, ctx):
         self.ctx = ctx
 
-    def include_file(self, filename):
+    def include_file(self, directory, filename):
         """Returns True if the file must be included in the backup, False otherwise"""
-        logger.debug("Accepting '%s'", filename)
+        logger.debug("Accepting '%s/%s'", directory, filename)
         return True
 
 
@@ -30,5 +30,5 @@ class FileFilterMock():
     def __init__(self, ctx):
         self.ctx = ctx
 
-    def include_file(self, filename):
+    def include_file(self, directory, filename):
         return True

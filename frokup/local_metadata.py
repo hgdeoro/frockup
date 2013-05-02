@@ -18,14 +18,17 @@ class LocalMetadata():
     def __init__(self, ctx):
         self.ctx = ctx
 
-    def include_file(self, filename):
+    def include_file(self, directory, filename):
         """Returns True if the file must be included in the backup, False otherwise"""
-        logger.debug("Accepting '%s'", filename)
+        logger.debug("Accepting '%s/%s'", directory, filename)
         return True
 
-    def update_metadata(self, filename, glacier_data):
+    def update_metadata(self, directory, filename, glacier_data):
         """Update the local metadata with the data returned by glacier"""
-        logger.debug("Updating metadata for file '%s'", filename)
+        logger.debug("Updating metadata for file '%s/%s'", directory, filename)
+        pass
+
+    def close(self):
         pass
 
 
@@ -34,8 +37,8 @@ class LocalMetadataMock():
     def __init__(self, ctx):
         self.ctx = ctx
 
-    def include_file(self, filename):
+    def include_file(self, directory, filename):
         return True
 
-    def update_metadata(self, glacier_data):
+    def update_metadata(self, directory, filename, glacier_data):
         return
