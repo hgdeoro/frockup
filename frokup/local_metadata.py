@@ -41,6 +41,10 @@ class LocalMetadata():
         self.last_directory = None
         self.database = None
 
+    def _stats_equals(self, stats1, stats2):
+        return (stats1.st_size == stats2.st_size
+            and stats1.st_mtime == stats2.st_mtime)
+
     def _opendb(self, directory):
         if self.database is None:
             assert self.last_directory is None
@@ -84,11 +88,12 @@ class LocalMetadata():
             self.database[filename] = {}
             data = self.database[filename]
         data['archive_id'] = glacier_data.archive_id
-        data['file_stats'] = file_stats.stats
+        data['stats.st_size'] = file_stats.stats.st_size
+        data['stats.st_mtime'] = file_stats.stats.st_mtime
         self.database.sync()
 
         current_stats = os.stat(os.path.join(directory, filename))
-        if current_stats != file_stats.stats:
+        if not self._stats_equals(current_stats, file_stats.stats):
             logger.warn("File changed while uploading: %s/%s", directory, filename)
 
     def close(self):
