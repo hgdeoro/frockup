@@ -45,6 +45,10 @@ class LocalMetadata():
         return (stats1.st_size == stats2.st_size
             and stats1.st_mtime == stats2.st_mtime)
 
+    def _file_stats_and_local_metadata_equals(self, file_stats, local_metadata):
+        return (file_stats.st_size == local_metadata.get('stats.st_size', None)
+            and file_stats.st_mtime == local_metadata.get('stats.st_mtime', None))
+
     def _opendb(self, directory):
         if self.database is None:
             assert self.last_directory is None
@@ -74,7 +78,18 @@ class LocalMetadata():
         assert os.path.isfile(full_filename)
         file_stats = os.stat(full_filename)
         self._opendb(directory)
-        return FileStats(file_stats)
+        try:
+            data = self.database[filename]
+        except KeyError:
+            self.database[filename] = {}
+            data = self.database[filename]
+
+        if self._file_stats_and_local_metadata_equals(file_stats, data):
+            logger.debug("Including %s/%s", directory, filename)
+            return FileStats(file_stats)
+        else:
+            logger.debug("Excluding %s/%s", directory, filename)
+            return False
 
     def update_metadata(self, directory, filename, file_stats, glacier_data):
         """Update the local metadata with the data returned by glacier"""
@@ -98,6 +113,7 @@ class LocalMetadata():
 
     def close(self):
         if self.database:
+            logger.debug("Closing database...")
             self.database.close()
             self.database = None
             self.last_directory = None
