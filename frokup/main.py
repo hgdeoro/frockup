@@ -12,6 +12,7 @@ from frokup.common import Context, EXCLUDED_BY_FILE_FILTER, \
 from frokup.file_filter import FileFilter
 from frokup.glacier import Glacier
 from frokup.local_metadata import LocalMetadata, FileStats
+import traceback
 
 logger = logging_.getLogger(__name__)
 
@@ -58,8 +59,17 @@ class Main():
             self.ctx.add_excluded(directory, filename, EXCLUDED_BY_LOCAL_METADATA)
             return
         self.ctx.add_included(directory, filename)
-        glacier_data = self.glacier.upload_file(directory, filename)
-        self.local_metadata.update_metadata(directory, filename, file_stats, glacier_data)
+        error = None
+        try:
+            glacier_data = self.glacier.upload_file(directory, filename)
+        except Exception, e:
+            logger.info("Exception '%s' detected while uploading file: '%s/%s'", e, directory, filename)
+            error = traceback.format_exc() or str(e) or 'error'
+
+        if error:
+            self.ctx.add_error(directory, filename, 'upload_error', error)
+        else:
+            self.local_metadata.update_metadata(directory, filename, file_stats, glacier_data)
 
     def close(self):
         self.local_metadata.close()

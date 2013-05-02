@@ -16,6 +16,7 @@ class Context(dict):
         self.log = {}
         self.excluded_count = 0
         self.included_count = 0
+        self.error_count = 0
 
     def add_log(self, directory, filename, **kwargs):
         self.log[directory] = self.log.get(directory, dict())
@@ -30,3 +31,8 @@ class Context(dict):
     def add_included(self, directory, filename):
         self.add_log(directory, filename, included=True)
         self.included_count += 1
+
+    def add_error(self, directory, filename, error_type, error_message):
+        self.add_log(directory, filename, error=True, error_type=error_type,
+            error_message=error_message)
+        self.error_count += 1

@@ -254,6 +254,9 @@ class BaseTest(unittest.TestCase):
         main = Main(glacier=GlacierErrorOnUploadMock)
         main.process_directory(dir1)
         main.close()
+        logging.debug("Database at %s: %s", dir1,
+            pprint.pformat(self._get_db_copy(dir1)))
+        logging.debug("Log: %s", pprint.pformat(main.ctx.log))
 
     def test_change_in_file_while_upload_is_detected(self):
         # FIXME: implement this test!
