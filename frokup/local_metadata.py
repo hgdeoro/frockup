@@ -9,6 +9,7 @@ import shelve
 import os
 
 from frokup.glacier import GlacierData
+from frokup.common import FLAG_FILE_CHANGED_WHILE_UPLOADING, Context
 
 logger = logging_.getLogger(__name__)
 
@@ -40,6 +41,7 @@ class LocalMetadata():
         self.ctx = ctx
         self.last_directory = None
         self.database = None
+        assert isinstance(self.ctx, Context)
 
     def _stats_equals(self, stats1, stats2):
         return (stats1.st_size == stats2.st_size
@@ -110,6 +112,8 @@ class LocalMetadata():
 
         current_stats = os.stat(os.path.join(directory, filename))
         if not self._stats_equals(current_stats, file_stats.stats):
+            self.ctx.add_log(directory, filename,
+                FLAG_FILE_CHANGED_WHILE_UPLOADING=True)
             logger.warn("File changed while uploading: %s/%s", directory, filename)
 
     def close(self):

@@ -7,11 +7,11 @@ Created on May 1, 2013
 import logging
 import os
 import unittest
-
-from frokup.main import Main
 import shelve
 import uuid
 import pprint
+
+from frokup.main import Main
 
 
 def _generate_local_metadata_db(directory, files, overwrite=False):
@@ -55,6 +55,10 @@ class BaseTest(unittest.TestCase):
         main = Main()
         main.process_directory(dir1)
         main.close()
+        # Check statistics
+        logging.debug("Log: %s", pprint.pformat(main.ctx.log))
+        self.assertEqual(main.ctx.included_count, 3)
+        self.assertEqual(main.ctx.excluded_count, 0)
         # Check that local metadata was created
         db_filename = os.path.join(dir1, '.frokup.db')
         database = shelve.open(db_filename)
@@ -79,6 +83,10 @@ class BaseTest(unittest.TestCase):
         main = Main()
         main.process_directory(dir2)
         main.close()
+        # Check statistics
+        logging.debug("Log: %s", pprint.pformat(main.ctx.log))
+        self.assertEqual(main.ctx.included_count, 0)
+        self.assertIn(main.ctx.excluded_count, [3, 4])
         # Check that local metadata wasn't changed
         db_filename = os.path.join(dir2, '.frokup.db')
         database = shelve.open(db_filename)
