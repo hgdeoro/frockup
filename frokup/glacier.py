@@ -9,6 +9,8 @@ import multiprocessing
 import logging as logging_
 import random
 import os
+import time
+from ftplib import FTP
 
 logger = logging_.getLogger(__name__)
 
@@ -73,9 +75,19 @@ class GlacierFtpBased():
         self.child = multiprocessing.Process(target=self._launch)
         self.child.start()
 
+    def wait_for_ftpserver(self):
+        ftp = FTP()
+        for try_num in range(1, 11):
+            try:
+                ftp.connect('127.0.0.1', self.ftp_port)
+                logger.info("Connect OK after %s tries", try_num)
+                return
+            except:
+                time.sleep(0.1)
+        ftp.connect('127.0.0.1', self.ftp_port)
+
     def upload_file(self, directory, filename):
         logger.info("Connecting to FTP...")
-        from ftplib import FTP
         ftp = FTP()
         ftp.connect('127.0.0.1', self.ftp_port)
         logger.info("Logging in to FTP...")

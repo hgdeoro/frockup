@@ -234,6 +234,7 @@ class BaseTest(unittest.TestCase):
         main.glacier = GlacierFtpBased(main.ctx)
         try:
             main.glacier.launch()
+            main.glacier.wait_for_ftpserver()
             main.process_directory(dir1)
             main.close()
         finally:
