@@ -30,10 +30,15 @@ class Glacier():
     def upload_file(self, directory, filename):
         """Uploads a file to glacier. Returns an instance of GlacierData"""
         logger.debug("Uploading file '%s/%s'", directory, filename)
+        raise Exception("IMPLEMENTAAAAAAAARRRRRRRR")
         glacier_data = GlacierData()
         glacier_data.archive_id = str(uuid.uuid4())
         return glacier_data
 
+
+#===============================================================================
+# Mocks and other implementations to easy tests
+#===============================================================================
 
 class GlacierMock():
 
@@ -41,7 +46,10 @@ class GlacierMock():
         self.ctx = ctx
 
     def upload_file(self, directory, filename):
-        return GlacierData()
+        logger.debug("Uploading file '%s/%s'", directory, filename)
+        glacier_data = GlacierData()
+        glacier_data.archive_id = str(uuid.uuid4())
+        return glacier_data
 
 
 class GlacierFtpBased():
@@ -51,6 +59,7 @@ class GlacierFtpBased():
         self.ftp_user = 'random_{0}'.format(random.randint(1000000, 9999999))
         self.ftp_password = str(uuid.uuid4())
         self.ftp_port = 18263
+        self.upload_file_ftp_callback = None
 
     def _launch(self):
         logger.info("Launching FTP server in child process")
@@ -96,7 +105,8 @@ class GlacierFtpBased():
         remote_filename = "{0}-{1}".format(filename, generated_uuid)
         with open(os.path.join(directory, filename)) as fp:
             logger.info("Sending file to FTP server...")
-            ftp.storbinary("STOR {0}".format(remote_filename), fp)
+            ftp.storbinary("STOR {0}".format(remote_filename), fp, 128,
+                self.upload_file_ftp_callback)
         logger.info("File sent OK to FTP")
 
         glacier_data = GlacierData()

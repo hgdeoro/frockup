@@ -7,7 +7,7 @@ Created on May 1, 2013
 import os
 import logging as logging_
 
-from frokup.common import Context, EXCLUDED_BY_FILE_FILTER,\
+from frokup.common import Context, EXCLUDED_BY_FILE_FILTER, \
     EXCLUDED_BY_LOCAL_METADATA
 from frokup.file_filter import FileFilter
 from frokup.glacier import Glacier
@@ -18,11 +18,11 @@ logger = logging_.getLogger(__name__)
 
 class Main():
 
-    def __init__(self):
+    def __init__(self, file_filter=FileFilter, glacier=Glacier, local_metadata=LocalMetadata):
         self.ctx = Context()
-        self.file_filter = FileFilter(self.ctx)
-        self.glacier = Glacier(self.ctx)
-        self.local_metadata = LocalMetadata(self.ctx)
+        self.file_filter = file_filter(self.ctx)
+        self.glacier = glacier(self.ctx)
+        self.local_metadata = local_metadata(self.ctx)
 
     def process_directory(self, directory):
         """Process the directory"""

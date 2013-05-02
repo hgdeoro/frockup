@@ -11,9 +11,10 @@ import shelve
 import uuid
 import pprint
 import shutil
+import time
 
 from frokup.main import Main
-from frokup.glacier import GlacierFtpBased
+from frokup.glacier import GlacierFtpBased, GlacierMock
 
 
 def _generate_local_metadata_db(directory, files, overwrite=False):
@@ -70,7 +71,7 @@ class BaseTest(unittest.TestCase):
         # Remove DB if exists (of previous run of the tests)
         self._remove_db_if_exists(dir1)
         # Call process_directory()
-        main = Main()
+        main = Main(glacier=GlacierMock)
         main.process_directory(dir1)
         main.close()
         # Check statistics
@@ -94,7 +95,7 @@ class BaseTest(unittest.TestCase):
         created_metadata = _generate_local_metadata_db(dir2,
             ('file1.txt', 'file2.txt', 'file3.txt'), overwrite=True)
         # Call process_directory()
-        main = Main()
+        main = Main(glacier=GlacierMock)
         main.process_directory(dir2)
         main.close()
         # Check statistics
@@ -121,7 +122,7 @@ class BaseTest(unittest.TestCase):
                 pass
 
         # --- Call process_directory() ---
-        main = Main()
+        main = Main(glacier=GlacierMock)
         main.process_directory(dir3)
         main.close()
         # Check statistics
@@ -131,7 +132,7 @@ class BaseTest(unittest.TestCase):
 
         # --- Call process_directory() ---
         for _ in range(0, 2):
-            main = Main()
+            main = Main(glacier=GlacierMock)
             main.process_directory(dir3)
             main.close()
             # Check statistics
@@ -144,7 +145,7 @@ class BaseTest(unittest.TestCase):
         shutil.copy2(os.path.join(dir3, '../dir2/file2.txt'), file2_path)
 
         # --- Call process_directory() ---
-        main = Main()
+        main = Main(glacier=GlacierMock)
         main.process_directory(dir3)
         main.close()
         # Check statistics
@@ -153,7 +154,7 @@ class BaseTest(unittest.TestCase):
         self.assertEqual(main.ctx.excluded_count, 2) # .frokup.db + file1.txt
 
         # --- Call process_directory() ---
-        main = Main()
+        main = Main(glacier=GlacierMock)
         main.process_directory(dir3)
         main.close()
         # Check statistics
@@ -165,7 +166,7 @@ class BaseTest(unittest.TestCase):
         os.utime(file2_path, (1, 1))
 
         # --- Call process_directory() ---
-        main = Main()
+        main = Main(glacier=GlacierMock)
         main.process_directory(dir3)
         main.close()
         # Check statistics
@@ -179,7 +180,7 @@ class BaseTest(unittest.TestCase):
         self.assertEqual(len(db['file2.txt']['old_archive_ids']), 1)
 
         # --- Call process_directory() ---
-        main = Main()
+        main = Main(glacier=GlacierMock)
         main.process_directory(dir3)
         main.close()
         # Check statistics
@@ -197,7 +198,7 @@ class BaseTest(unittest.TestCase):
             f2_file_object.write('\nA new Line\n')
 
         # --- Call process_directory() ---
-        main = Main()
+        main = Main(glacier=GlacierMock)
         main.process_directory(dir3)
         main.close()
         # Check statistics
@@ -211,7 +212,7 @@ class BaseTest(unittest.TestCase):
         self.assertEqual(len(db['file2.txt']['old_archive_ids']), 2)
 
         # --- Call process_directory() ---
-        main = Main()
+        main = Main(glacier=GlacierMock)
         main.process_directory(dir3)
         main.close()
         # Check statistics
@@ -228,17 +229,25 @@ class BaseTest(unittest.TestCase):
             pprint.pformat(self._get_db_copy(dir3)))
 
     def test_glacier_ftp(self):
+
+        def _wait_callback(buf):
+            time.sleep(0.1)
+
         dir1 = self._get_test_subdir('dir1')
         self._remove_db_if_exists(dir1)
-        main = Main()
+        main = Main(glacier=GlacierFtpBased)
         main.glacier = GlacierFtpBased(main.ctx)
         try:
             main.glacier.launch()
             main.glacier.wait_for_ftpserver()
+            main.glacier.upload_file_ftp_callback = _wait_callback
             main.process_directory(dir1)
             main.close()
         finally:
             main.glacier.kill_ftp()
+
+    def test_change_in_file_while_upload_is_detected(self):
+        pass
 
 
 if __name__ == '__main__':
