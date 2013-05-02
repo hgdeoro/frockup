@@ -7,21 +7,21 @@ Created on May 1, 2013
 import argparse
 import os
 import logging as logging_
+import traceback
 
 from frokup.common import Context, EXCLUDED_BY_FILE_FILTER, \
     EXCLUDED_BY_LOCAL_METADATA
 from frokup.file_filter import FileFilter
-from frokup.glacier import Glacier
+from frokup.glacier import Glacier, GlacierFtpBased
 from frokup.local_metadata import LocalMetadata, FileStats
-import traceback
 
 logger = logging_.getLogger(__name__)
 
 
 class Main():
 
-    def __init__(self, file_filter=FileFilter, glacier=Glacier, local_metadata=LocalMetadata):
-        self.ctx = Context()
+    def __init__(self, ctx=None, file_filter=FileFilter, glacier=Glacier, local_metadata=LocalMetadata):
+        self.ctx = ctx or Context()
         self.file_filter = file_filter(self.ctx)
         self.glacier = glacier(self.ctx)
         self.local_metadata = local_metadata(self.ctx)
@@ -86,19 +86,31 @@ def main():
         help="Directory to backup")
 
     args = parser.parse_args()
-    main = Main()
+    ctx = Context()
 
     if args.include and args.exclude:
         parser.error("Can't use --include and --exclude at the same time.")
         return
     elif args.include:
-        main.ctx.set_include_extensions(args.include.split(','))
+        ctx.set_include_extensions(args.include.split(','))
     elif args.exclude:
-        main.ctx.set_exclude_extensions(args.exclude.split(','))
+        ctx.set_exclude_extensions(args.exclude.split(','))
 
-    for a_directory in args.directory:
-        main.process_directory(a_directory)
-    main.close()
+    if 'FROKUP_FTP_MODE' in os.environ:
+        main = Main(ctx=ctx, glacier=GlacierFtpBased)
+        try:
+            main.glacier.launch()
+            main.glacier.wait_for_ftpserver()
+            for a_directory in args.directory:
+                main.process_directory(a_directory)
+            main.close()
+        finally:
+            main.glacier.kill_ftp()
+    else:
+        main = Main(ctx=ctx)
+        for a_directory in args.directory:
+            main.process_directory(a_directory)
+        main.close()
 
 if __name__ == '__main__':
     logging_.basicConfig(level=logging_.DEBUG)

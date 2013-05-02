@@ -237,7 +237,6 @@ class BaseTest(unittest.TestCase):
         dir1 = self._get_test_subdir('dir1')
         self._remove_db_if_exists(dir1)
         main = Main(glacier=GlacierFtpBased)
-        main.glacier = GlacierFtpBased(main.ctx)
         try:
             main.glacier.launch()
             main.glacier.wait_for_ftpserver()
