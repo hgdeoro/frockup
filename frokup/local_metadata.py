@@ -113,7 +113,7 @@ class LocalMetadata():
         current_stats = os.stat(os.path.join(directory, filename))
         if not self._stats_equals(current_stats, file_stats.stats):
             self.ctx.add_log(directory, filename,
-                FLAG_FILE_CHANGED_WHILE_UPLOADING=True)
+                {FLAG_FILE_CHANGED_WHILE_UPLOADING: True})
             logger.warn("File changed while uploading: %s/%s", directory, filename)
 
     def close(self):
