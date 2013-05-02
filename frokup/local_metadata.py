@@ -104,6 +104,11 @@ class LocalMetadata():
         except KeyError:
             logger.debug("Creating new entry in local metadata DB for file %s", filename)
             data = {}
+        if 'archive_id' in data:
+            # save old value
+            if not 'old_archive_ids' in data:
+                data['old_archive_ids'] = []
+            data['old_archive_ids'].append(data['archive_id'])
         data['archive_id'] = glacier_data.archive_id
         data['stats.st_size'] = file_stats.stats.st_size
         data['stats.st_mtime'] = file_stats.stats.st_mtime

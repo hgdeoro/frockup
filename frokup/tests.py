@@ -56,6 +56,13 @@ class BaseTest(unittest.TestCase):
         except OSError:
             pass
 
+    def _get_db_copy(self, dirname):
+        """Returns a dict with a copy of the DB contents"""
+        db = shelve.open(os.path.join(dirname, '.frokup.db'))
+        copy = dict(db)
+        db.close()
+        return copy
+
     def test_dir1(self):
         """Tests that metadata is created when don't exists"""
         dir1 = self._get_test_subdir('dir1')
@@ -165,6 +172,11 @@ class BaseTest(unittest.TestCase):
         self.assertEqual(main.ctx.included_count, 1) # file2.txt
         self.assertEqual(main.ctx.excluded_count, 2) # .frokup.db + file1.txt
 
+        # Check `old_archive_ids`
+        db = self._get_db_copy(dir3)
+        self.assertTrue('old_archive_ids' in db['file2.txt'])
+        self.assertEqual(len(db['file2.txt']['old_archive_ids']), 1)
+
         # --- Call process_directory() ---
         main = Main()
         main.process_directory(dir3)
@@ -173,6 +185,11 @@ class BaseTest(unittest.TestCase):
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
         self.assertEqual(main.ctx.included_count, 0)
         self.assertEqual(main.ctx.excluded_count, 3) # .frokup.db + file1.txt + file2.txt
+
+        # Check `old_archive_ids`
+        db = self._get_db_copy(dir3)
+        self.assertTrue('old_archive_ids' in db['file2.txt'])
+        self.assertEqual(len(db['file2.txt']['old_archive_ids']), 1)
 
         # --- Add data to `file2.txt`
         with open(file2_path, 'a') as f2_file_object:
@@ -187,6 +204,11 @@ class BaseTest(unittest.TestCase):
         self.assertEqual(main.ctx.included_count, 1) # file2.txt
         self.assertEqual(main.ctx.excluded_count, 2) # .frokup.db + file1.txt
 
+        # Check `old_archive_ids`
+        db = self._get_db_copy(dir3)
+        self.assertTrue('old_archive_ids' in db['file2.txt'])
+        self.assertEqual(len(db['file2.txt']['old_archive_ids']), 2)
+
         # --- Call process_directory() ---
         main = Main()
         main.process_directory(dir3)
@@ -195,6 +217,14 @@ class BaseTest(unittest.TestCase):
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
         self.assertEqual(main.ctx.included_count, 0)
         self.assertEqual(main.ctx.excluded_count, 3) # .frokup.db + file1.txt + file2.txt
+
+        # Check `old_archive_ids`
+        db = self._get_db_copy(dir3)
+        self.assertTrue('old_archive_ids' in db['file2.txt'])
+        self.assertEqual(len(db['file2.txt']['old_archive_ids']), 2)
+
+        logging.debug("Database at %s: %s", dir3,
+            pprint.pformat(self._get_db_copy(dir3)))
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
