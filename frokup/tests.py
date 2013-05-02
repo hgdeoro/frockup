@@ -14,6 +14,30 @@ import uuid
 import pprint
 
 
+def _generate_local_metadata_db(directory, files, overwrite=False):
+    assert os.path.exists(directory)
+    # Create local metadata DB
+    db_filename = os.path.join(directory, '.frokup.db')
+    if overwrite and os.path.exists(db_filename):
+        os.unlink(db_filename)
+    assert not os.path.exists(db_filename)
+    database = shelve.open(db_filename)
+    created_metadata = {}
+    for filename in files:
+        assert os.path.isfile(os.path.join(directory, filename))
+        file_stats = os.stat(os.path.join(directory, filename))
+        data = {}
+        data['archive_id'] = str(uuid.uuid4())
+        data['stats.st_size'] = file_stats.st_size
+        data['stats.st_mtime'] = file_stats.st_mtime
+        database[filename] = data
+        database.sync()
+        created_metadata[filename] = {}
+        created_metadata[filename].update(data)
+    database.close()
+    return created_metadata
+
+
 class BaseTest(unittest.TestCase):
 
     def test_dir1(self):
@@ -49,25 +73,14 @@ class BaseTest(unittest.TestCase):
         dir2 = os.path.join(test_dir, 'dir2')
         self.assertTrue(os.path.exists(dir2))
         # Create local metadata DB
-        db_filename = os.path.join(dir2, '.frokup.db')
-        database = shelve.open(db_filename)
-        created_metadata = {}
-        for filename in ('file1.txt', 'file2.txt', 'file3.txt'):
-            file_stats = os.stat(os.path.join(dir2, filename))
-            data = {}
-            data['archive_id'] = str(uuid.uuid4())
-            data['stats.st_size'] = file_stats.st_size
-            data['stats.st_mtime'] = file_stats.st_mtime
-            database[filename] = data
-            database.sync()
-            created_metadata[filename] = {}
-            created_metadata[filename].update(data)
-        database.close()
+        created_metadata = _generate_local_metadata_db(dir2,
+            ('file1.txt', 'file2.txt', 'file3.txt'), overwrite=True)
         # Call process_directory()
         main = Main()
         main.process_directory(dir2)
         main.close()
         # Check that local metadata wasn't changed
+        db_filename = os.path.join(dir2, '.frokup.db')
         database = shelve.open(db_filename)
         logging.debug("Database at %s: %s", db_filename, pprint.pformat(database))
         for filename in ('file1.txt', 'file2.txt', 'file3.txt'):
