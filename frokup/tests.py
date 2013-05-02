@@ -10,9 +10,9 @@ import unittest
 import shelve
 import uuid
 import pprint
+import shutil
 
 from frokup.main import Main
-import shutil
 
 
 def _generate_local_metadata_db(directory, files, overwrite=False):
@@ -118,7 +118,7 @@ class BaseTest(unittest.TestCase):
         main.close()
         # Check statistics
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
-        self.assertEqual(main.ctx.included_count, 1)
+        self.assertEqual(main.ctx.included_count, 1) # file1.txt
         self.assertEqual(main.ctx.excluded_count, 0)
 
         # --- Call process_directory() ---
@@ -141,7 +141,7 @@ class BaseTest(unittest.TestCase):
         main.close()
         # Check statistics
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
-        self.assertEqual(main.ctx.included_count, 1)
+        self.assertEqual(main.ctx.included_count, 1) # file2.txt
         self.assertEqual(main.ctx.excluded_count, 2) # .frokup.db + file1.txt
 
         # --- Call process_directory() ---
@@ -151,7 +151,7 @@ class BaseTest(unittest.TestCase):
         # Check statistics
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
         self.assertEqual(main.ctx.included_count, 0)
-        self.assertEqual(main.ctx.excluded_count, 3) # .frokup.db + file1.txt
+        self.assertEqual(main.ctx.excluded_count, 3) # .frokup.db + file1.txt + file2.txt
 
         # --- Touch `file2.txt`
         os.utime(file2_path, (1, 1))
@@ -162,7 +162,7 @@ class BaseTest(unittest.TestCase):
         main.close()
         # Check statistics
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
-        self.assertEqual(main.ctx.included_count, 1)
+        self.assertEqual(main.ctx.included_count, 1) # file2.txt
         self.assertEqual(main.ctx.excluded_count, 2) # .frokup.db + file1.txt
 
         # --- Call process_directory() ---
@@ -172,7 +172,7 @@ class BaseTest(unittest.TestCase):
         # Check statistics
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
         self.assertEqual(main.ctx.included_count, 0)
-        self.assertEqual(main.ctx.excluded_count, 3) # .frokup.db + file1.txt
+        self.assertEqual(main.ctx.excluded_count, 3) # .frokup.db + file1.txt + file2.txt
 
         # --- Add data to `file2.txt`
         with open(file2_path, 'a') as f2_file_object:
@@ -184,7 +184,7 @@ class BaseTest(unittest.TestCase):
         main.close()
         # Check statistics
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
-        self.assertEqual(main.ctx.included_count, 1)
+        self.assertEqual(main.ctx.included_count, 1) # file2.txt
         self.assertEqual(main.ctx.excluded_count, 2) # .frokup.db + file1.txt
 
         # --- Call process_directory() ---
@@ -194,7 +194,7 @@ class BaseTest(unittest.TestCase):
         # Check statistics
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
         self.assertEqual(main.ctx.included_count, 0)
-        self.assertEqual(main.ctx.excluded_count, 3) # .frokup.db + file1.txt
+        self.assertEqual(main.ctx.excluded_count, 3) # .frokup.db + file1.txt + file2.txt
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
