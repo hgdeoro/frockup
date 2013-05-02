@@ -12,6 +12,7 @@ import uuid
 import pprint
 
 from frokup.main import Main
+import shutil
 
 
 def _generate_local_metadata_db(directory, files, overwrite=False):
@@ -40,17 +41,26 @@ def _generate_local_metadata_db(directory, files, overwrite=False):
 
 class BaseTest(unittest.TestCase):
 
-    def test_dir1(self):
-        """Tests that metadata is created when don't exists"""
+    def _get_test_subdir(self, dirname):
         module_dir = os.path.abspath(os.path.split(__file__)[0])
         root_dir = os.path.abspath(os.path.split(module_dir)[0])
         test_dir = os.path.join(root_dir, 'tests')
-        dir1 = os.path.join(test_dir, 'dir1')
-        # Remove DB if exists (of previous run of the tests)
+        subdir = os.path.join(test_dir, dirname)
+        self.assertTrue(os.path.exists(subdir))
+        self.assertTrue(os.path.isdir(subdir))
+        return subdir
+
+    def _remove_db_if_exists(self, dirname):
         try:
-            os.unlink(os.path.join(dir1, '.frokup.db'))
+            os.unlink(os.path.join(dirname, '.frokup.db'))
         except OSError:
             pass
+
+    def test_dir1(self):
+        """Tests that metadata is created when don't exists"""
+        dir1 = self._get_test_subdir('dir1')
+        # Remove DB if exists (of previous run of the tests)
+        self._remove_db_if_exists(dir1)
         # Call process_directory()
         main = Main()
         main.process_directory(dir1)
@@ -71,11 +81,7 @@ class BaseTest(unittest.TestCase):
     def test_dir2(self):
         """Tests that metadata is compared sucesfully when no change exists in files,
         and no file should be uploaded"""
-        module_dir = os.path.abspath(os.path.split(__file__)[0])
-        root_dir = os.path.abspath(os.path.split(module_dir)[0])
-        test_dir = os.path.join(root_dir, 'tests')
-        dir2 = os.path.join(test_dir, 'dir2')
-        self.assertTrue(os.path.exists(dir2))
+        dir2 = self._get_test_subdir('dir2')
         # Create local metadata DB
         created_metadata = _generate_local_metadata_db(dir2,
             ('file1.txt', 'file2.txt', 'file3.txt'), overwrite=True)
@@ -95,6 +101,100 @@ class BaseTest(unittest.TestCase):
             self.assertDictEqual(database[filename],
                 created_metadata[filename])
 
+    def test_dir3(self):
+        """Tests metadata updates"""
+        dir3 = self._get_test_subdir('dir3')
+        # Remove files
+        self._remove_db_if_exists(dir3)
+        for filename in ('file2.txt', 'file3.txt'):
+            try:
+                os.unlink(os.path.join(dir3, filename))
+            except OSError:
+                pass
+
+        # --- Call process_directory() ---
+        main = Main()
+        main.process_directory(dir3)
+        main.close()
+        # Check statistics
+        logging.debug("Log: %s", pprint.pformat(main.ctx.log))
+        self.assertEqual(main.ctx.included_count, 1)
+        self.assertEqual(main.ctx.excluded_count, 0)
+
+        # --- Call process_directory() ---
+        for _ in range(0, 2):
+            main = Main()
+            main.process_directory(dir3)
+            main.close()
+            # Check statistics
+            logging.debug("Log: %s", pprint.pformat(main.ctx.log))
+            self.assertEqual(main.ctx.included_count, 0)
+            self.assertEqual(main.ctx.excluded_count, 2) # .frokup.db + file1.txt
+
+        # --- Add `file2.txt`
+        file2_path = os.path.join(dir3, 'file2.txt')
+        shutil.copy2(os.path.join(dir3, '../dir2/file2.txt'), file2_path)
+
+        # --- Call process_directory() ---
+        main = Main()
+        main.process_directory(dir3)
+        main.close()
+        # Check statistics
+        logging.debug("Log: %s", pprint.pformat(main.ctx.log))
+        self.assertEqual(main.ctx.included_count, 1)
+        self.assertEqual(main.ctx.excluded_count, 2) # .frokup.db + file1.txt
+
+        # --- Call process_directory() ---
+        main = Main()
+        main.process_directory(dir3)
+        main.close()
+        # Check statistics
+        logging.debug("Log: %s", pprint.pformat(main.ctx.log))
+        self.assertEqual(main.ctx.included_count, 0)
+        self.assertEqual(main.ctx.excluded_count, 3) # .frokup.db + file1.txt
+
+        # --- Touch `file2.txt`
+        os.utime(file2_path, (1, 1))
+
+        # --- Call process_directory() ---
+        main = Main()
+        main.process_directory(dir3)
+        main.close()
+        # Check statistics
+        logging.debug("Log: %s", pprint.pformat(main.ctx.log))
+        self.assertEqual(main.ctx.included_count, 1)
+        self.assertEqual(main.ctx.excluded_count, 2) # .frokup.db + file1.txt
+
+        # --- Call process_directory() ---
+        main = Main()
+        main.process_directory(dir3)
+        main.close()
+        # Check statistics
+        logging.debug("Log: %s", pprint.pformat(main.ctx.log))
+        self.assertEqual(main.ctx.included_count, 0)
+        self.assertEqual(main.ctx.excluded_count, 3) # .frokup.db + file1.txt
+
+        # --- Add data to `file2.txt`
+        with open(file2_path, 'a') as f2_file_object:
+            f2_file_object.write('\nA new Line\n')
+
+        # --- Call process_directory() ---
+        main = Main()
+        main.process_directory(dir3)
+        main.close()
+        # Check statistics
+        logging.debug("Log: %s", pprint.pformat(main.ctx.log))
+        self.assertEqual(main.ctx.included_count, 1)
+        self.assertEqual(main.ctx.excluded_count, 2) # .frokup.db + file1.txt
+
+        # --- Call process_directory() ---
+        main = Main()
+        main.process_directory(dir3)
+        main.close()
+        # Check statistics
+        logging.debug("Log: %s", pprint.pformat(main.ctx.log))
+        self.assertEqual(main.ctx.included_count, 0)
+        self.assertEqual(main.ctx.excluded_count, 3) # .frokup.db + file1.txt
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)

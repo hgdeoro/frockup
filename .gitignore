@@ -3,3 +3,5 @@
 *.pyo
 /tests/dir1/.frokup.db
 /tests/dir2/.frokup.db
+/tests/dir3/.frokup.db
+/tests/dir3/file2.txt
