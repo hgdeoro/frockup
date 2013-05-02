@@ -15,8 +15,15 @@ class BaseTest(unittest.TestCase):
 
     def test(self):
         module_dir = os.path.abspath(os.path.split(__file__)[0])
+        root_dir = os.path.abspath(os.path.split(module_dir)[0])
+        test_dir = os.path.join(root_dir, 'tests')
+        dir1 = os.path.join(test_dir, 'dir1')
+        try:
+            os.unlink(os.path.join(dir1, '.frokup.db'))
+        except OSError:
+            pass
         main = Main()
-        main.process_directory(module_dir)
+        main.process_directory(dir1)
 
 
 if __name__ == '__main__':

@@ -56,6 +56,9 @@ class Main():
     def main(self):
         self.process_directory(os.path.split(__file__)[0])
 
+    def close(self):
+        self.local_metadata.close()
+
 
 def main():
     Main().main()
