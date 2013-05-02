@@ -13,6 +13,7 @@ import pprint
 import shutil
 
 from frokup.main import Main
+from frokup.glacier import GlacierFtpBased
 
 
 def _generate_local_metadata_db(directory, files, overwrite=False):
@@ -225,6 +226,19 @@ class BaseTest(unittest.TestCase):
 
         logging.debug("Database at %s: %s", dir3,
             pprint.pformat(self._get_db_copy(dir3)))
+
+    def test_glacier_ftp(self):
+        dir1 = self._get_test_subdir('dir1')
+        self._remove_db_if_exists(dir1)
+        main = Main()
+        main.glacier = GlacierFtpBased(main.ctx)
+        try:
+            main.glacier.launch()
+            main.process_directory(dir1)
+            main.close()
+        finally:
+            main.glacier.kill_ftp()
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
