@@ -71,10 +71,8 @@ class BaseTest(unittest.TestCase):
         database = shelve.open(db_filename)
         logging.debug("Database at %s: %s", db_filename, pprint.pformat(database))
         for filename in ('file1.txt', 'file2.txt', 'file3.txt'):
-            self.assertEqual(database[filename]['stats.st_size'],
-                created_metadata[filename]['stats.st_size'])
-            self.assertEqual(database[filename]['stats.st_mtime'],
-                created_metadata[filename]['stats.st_mtime'])
+            self.assertDictEqual(database[filename],
+                created_metadata[filename])
 
 
 if __name__ == '__main__':
