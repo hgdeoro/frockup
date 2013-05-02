@@ -10,7 +10,7 @@ import logging as logging_
 from frokup.common import Context
 from frokup.file_filter import FileFilter
 from frokup.glacier import Glacier
-from frokup.local_metadata import LocalMetadata
+from frokup.local_metadata import LocalMetadata, FileStats
 
 logger = logging_.getLogger(__name__)
 
@@ -48,10 +48,12 @@ class Main():
 
         if not self.file_filter.include_file(directory, filename):
             return
-        if not self.local_metadata.include_file(directory, filename):
+        file_stats = self.local_metadata.include_file(directory, filename)
+        assert isinstance(file_stats, (FileStats, bool))
+        if file_stats is False:
             return
         glacier_data = self.glacier.upload_file(directory, filename)
-        self.local_metadata.update_metadata(directory, filename, glacier_data)
+        self.local_metadata.update_metadata(directory, filename, file_stats, glacier_data)
 
     def main(self):
         self.process_directory(os.path.split(__file__)[0])
