@@ -2,3 +2,4 @@
 *.pyc
 *.pyo
 /tests/dir1/.frokup.db
+/tests/dir2/.frokup.db
