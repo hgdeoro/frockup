@@ -14,7 +14,8 @@ import shutil
 import time
 
 from frokup.main import Main
-from frokup.glacier import GlacierFtpBased, GlacierMock
+from frokup.glacier import GlacierFtpBased, GlacierMock, \
+    GlacierErrorOnUploadMock
 
 
 def _generate_local_metadata_db(directory, files, overwrite=False):
@@ -246,7 +247,16 @@ class BaseTest(unittest.TestCase):
         finally:
             main.glacier.kill_ftp()
 
+    def test_glacier_error_on_upload(self):
+
+        dir1 = self._get_test_subdir('dir1')
+        self._remove_db_if_exists(dir1)
+        main = Main(glacier=GlacierErrorOnUploadMock)
+        main.process_directory(dir1)
+        main.close()
+
     def test_change_in_file_while_upload_is_detected(self):
+        # FIXME: implement this test!
         pass
 
 

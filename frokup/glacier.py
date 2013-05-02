@@ -52,6 +52,12 @@ class GlacierMock():
         return glacier_data
 
 
+class GlacierErrorOnUploadMock(GlacierMock):
+
+    def upload_file(self, directory, filename):
+        raise(Exception("This implementation of upload_file() ALWAYS raises an exception"))
+
+
 class GlacierFtpBased():
 
     def __init__(self, ctx):
