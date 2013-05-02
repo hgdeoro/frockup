@@ -24,6 +24,7 @@ class BaseTest(unittest.TestCase):
             pass
         main = Main()
         main.process_directory(dir1)
+        main.close()
 
 
 if __name__ == '__main__':
