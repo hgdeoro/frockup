@@ -13,15 +13,15 @@ import pprint
 import shutil
 import time
 
-from frokup.main import Main
-from frokup.glacier import GlacierFtpBased, GlacierMock, \
+from frockup.main import Main
+from frockup.glacier import GlacierFtpBased, GlacierMock, \
     GlacierErrorOnUploadMock
 
 
 def _generate_local_metadata_db(directory, files, overwrite=False):
     assert os.path.exists(directory)
     # Create local metadata DB
-    db_filename = os.path.join(directory, '.frokup.db')
+    db_filename = os.path.join(directory, '.frockup.db')
     if overwrite and os.path.exists(db_filename):
         os.unlink(db_filename)
     assert not os.path.exists(db_filename)
@@ -55,13 +55,13 @@ class BaseTest(unittest.TestCase):
 
     def _remove_db_if_exists(self, dirname):
         try:
-            os.unlink(os.path.join(dirname, '.frokup.db'))
+            os.unlink(os.path.join(dirname, '.frockup.db'))
         except OSError:
             pass
 
     def _get_db_copy(self, dirname):
         """Returns a dict with a copy of the DB contents"""
-        db = shelve.open(os.path.join(dirname, '.frokup.db'))
+        db = shelve.open(os.path.join(dirname, '.frockup.db'))
         copy = dict(db)
         db.close()
         return copy
@@ -80,7 +80,7 @@ class BaseTest(unittest.TestCase):
         self.assertEqual(main.ctx.included_count, 3)
         self.assertEqual(main.ctx.excluded_count, 0)
         # Check that local metadata was created
-        db_filename = os.path.join(dir1, '.frokup.db')
+        db_filename = os.path.join(dir1, '.frockup.db')
         database = shelve.open(db_filename)
         logging.debug("Database at %s: %s", db_filename, pprint.pformat(database))
         for filename in ('file1.txt', 'file2.txt', 'file3.txt'):
@@ -104,7 +104,7 @@ class BaseTest(unittest.TestCase):
         self.assertEqual(main.ctx.included_count, 0)
         self.assertIn(main.ctx.excluded_count, [3, 4])
         # Check that local metadata wasn't changed
-        db_filename = os.path.join(dir2, '.frokup.db')
+        db_filename = os.path.join(dir2, '.frockup.db')
         database = shelve.open(db_filename)
         logging.debug("Database at %s: %s", db_filename, pprint.pformat(database))
         for filename in ('file1.txt', 'file2.txt', 'file3.txt'):
@@ -139,7 +139,7 @@ class BaseTest(unittest.TestCase):
             # Check statistics
             logging.debug("Log: %s", pprint.pformat(main.ctx.log))
             self.assertEqual(main.ctx.included_count, 0)
-            self.assertEqual(main.ctx.excluded_count, 2) # .frokup.db + file1.txt
+            self.assertEqual(main.ctx.excluded_count, 2) # .frockup.db + file1.txt
 
         # --- Add `file2.txt`
         file2_path = os.path.join(dir3, 'file2.txt')
@@ -152,7 +152,7 @@ class BaseTest(unittest.TestCase):
         # Check statistics
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
         self.assertEqual(main.ctx.included_count, 1) # file2.txt
-        self.assertEqual(main.ctx.excluded_count, 2) # .frokup.db + file1.txt
+        self.assertEqual(main.ctx.excluded_count, 2) # .frockup.db + file1.txt
 
         # --- Call process_directory() ---
         main = Main(glacier=GlacierMock)
@@ -161,7 +161,7 @@ class BaseTest(unittest.TestCase):
         # Check statistics
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
         self.assertEqual(main.ctx.included_count, 0)
-        self.assertEqual(main.ctx.excluded_count, 3) # .frokup.db + file1.txt + file2.txt
+        self.assertEqual(main.ctx.excluded_count, 3) # .frockup.db + file1.txt + file2.txt
 
         # --- Touch `file2.txt`
         os.utime(file2_path, (1, 1))
@@ -173,7 +173,7 @@ class BaseTest(unittest.TestCase):
         # Check statistics
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
         self.assertEqual(main.ctx.included_count, 1) # file2.txt
-        self.assertEqual(main.ctx.excluded_count, 2) # .frokup.db + file1.txt
+        self.assertEqual(main.ctx.excluded_count, 2) # .frockup.db + file1.txt
 
         # Check `old_archive_ids`
         db = self._get_db_copy(dir3)
@@ -187,7 +187,7 @@ class BaseTest(unittest.TestCase):
         # Check statistics
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
         self.assertEqual(main.ctx.included_count, 0)
-        self.assertEqual(main.ctx.excluded_count, 3) # .frokup.db + file1.txt + file2.txt
+        self.assertEqual(main.ctx.excluded_count, 3) # .frockup.db + file1.txt + file2.txt
 
         # Check `old_archive_ids`
         db = self._get_db_copy(dir3)
@@ -205,7 +205,7 @@ class BaseTest(unittest.TestCase):
         # Check statistics
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
         self.assertEqual(main.ctx.included_count, 1) # file2.txt
-        self.assertEqual(main.ctx.excluded_count, 2) # .frokup.db + file1.txt
+        self.assertEqual(main.ctx.excluded_count, 2) # .frockup.db + file1.txt
 
         # Check `old_archive_ids`
         db = self._get_db_copy(dir3)
@@ -219,7 +219,7 @@ class BaseTest(unittest.TestCase):
         # Check statistics
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
         self.assertEqual(main.ctx.included_count, 0)
-        self.assertEqual(main.ctx.excluded_count, 3) # .frokup.db + file1.txt + file2.txt
+        self.assertEqual(main.ctx.excluded_count, 3) # .frockup.db + file1.txt + file2.txt
 
         # Check `old_archive_ids`
         db = self._get_db_copy(dir3)

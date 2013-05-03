@@ -8,8 +8,8 @@ import logging as logging_
 import shelve
 import os
 
-from frokup.glacier import GlacierData
-from frokup.common import FLAG_FILE_CHANGED_WHILE_UPLOADING, Context
+from frockup.glacier import GlacierData
+from frockup.common import FLAG_FILE_CHANGED_WHILE_UPLOADING, Context
 
 logger = logging_.getLogger(__name__)
 
@@ -67,7 +67,7 @@ class LocalMetadata():
                 # just return, the current DB is the good one
                 return
 
-        db_filename = os.path.join(directory, '.frokup.db')
+        db_filename = os.path.join(directory, '.frockup.db')
         logger.debug("Opening metadata DB at '%s'", db_filename)
         self.last_directory = directory
         self.database = shelve.open(db_filename)

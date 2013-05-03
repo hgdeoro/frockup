@@ -9,11 +9,11 @@ import os
 import logging as logging_
 import traceback
 
-from frokup.common import Context, EXCLUDED_BY_FILE_FILTER, \
+from frockup.common import Context, EXCLUDED_BY_FILE_FILTER, \
     EXCLUDED_BY_LOCAL_METADATA
-from frokup.file_filter import FileFilter
-from frokup.glacier import Glacier, GlacierFtpBased
-from frokup.local_metadata import LocalMetadata, FileStats
+from frockup.file_filter import FileFilter
+from frockup.glacier import Glacier, GlacierFtpBased
+from frockup.local_metadata import LocalMetadata, FileStats
 import pprint
 
 logger = logging_.getLogger(__name__)
