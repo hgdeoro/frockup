@@ -1,0 +1,2 @@
+boto==2.9.2
+pyftpdlib==1.2.0
