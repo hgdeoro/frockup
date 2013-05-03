@@ -1,20 +1,33 @@
-'''
-Created on May 1, 2013
-
-@author: Horacio G. de Oro
-'''
+# -*- coding: utf-8 -*-
+#===============================================================================
+#    frockup - FROzen baCKUP or backup to Amazon Glacier
+#    Copyright (C) 2013 Horacio Guillermo de Oro <hgdeoro@gmail.com>
+#
+#    This program is free software: you can redistribute it and/or modify
+#    it under the terms of the GNU General Public License as published by
+#    the Free Software Foundation, either version 3 of the License, or
+#    (at your option) any later version.
+#
+#    This program is distributed in the hope that it will be useful,
+#    but WITHOUT ANY WARRANTY; without even the implied warranty of
+#    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+#    GNU General Public License for more details.
+#
+#    You should have received a copy of the GNU General Public License
+#    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+#===============================================================================
 
 import argparse
 import os
 import logging as logging_
 import traceback
+import pprint
 
 from frockup.common import Context, EXCLUDED_BY_FILE_FILTER, \
     EXCLUDED_BY_LOCAL_METADATA
 from frockup.file_filter import FileFilter
 from frockup.glacier import Glacier, GlacierFtpBased
 from frockup.local_metadata import LocalMetadata, FileStats
-import pprint
 
 logger = logging_.getLogger(__name__)
 
