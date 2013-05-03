@@ -35,7 +35,10 @@ logger = logging_.getLogger(__name__)
 class Main():
 
     def __init__(self, ctx=None, file_filter=FileFilter, glacier=Glacier, local_metadata=LocalMetadata):
-        self.ctx = ctx or Context()
+        if ctx is None:
+            self.ctx = Context()
+        else:
+            self.ctx = ctx
         self.file_filter = file_filter(self.ctx)
         self.glacier = glacier(self.ctx)
         self.local_metadata = local_metadata(self.ctx)
@@ -135,7 +138,8 @@ def main():
             main.process_directory(a_directory)
         main.close()
 
-    pprint.pprint(main.ctx)
+    print "Statistics:"
+    pprint.pprint(ctx.log)
 
 if __name__ == '__main__':
     main()

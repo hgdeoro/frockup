@@ -88,7 +88,7 @@ class LocalMetadata():
     def include_file(self, directory, filename):
         """Returns an instance of FileStats if the file must be included in the backup,
         False otherwise."""
-        logger.debug("Accepting '%s/%s'", directory, filename)
+        logger.debug("Checking '%s/%s'", directory, filename)
         full_filename = os.path.join(directory, filename)
         assert os.path.isfile(full_filename)
         file_stats = os.stat(full_filename)
