@@ -14,6 +14,7 @@ from frokup.common import Context, EXCLUDED_BY_FILE_FILTER, \
 from frokup.file_filter import FileFilter
 from frokup.glacier import Glacier, GlacierFtpBased
 from frokup.local_metadata import LocalMetadata, FileStats
+import pprint
 
 logger = logging_.getLogger(__name__)
 
@@ -78,6 +79,10 @@ class Main():
 
 def main():
     parser = argparse.ArgumentParser(description='Backup files to Glacier')
+    parser.add_argument('--info', dest='log_level', action='store_const', const=logging_.INFO,
+        help="Set log level to info")
+    parser.add_argument('--debug', dest='log_level', action='store_const', const=logging_.DEBUG,
+        help="Set log level to debug")
     parser.add_argument('--include', dest='include',
         help="File extensions to include, separated by commas (ej: jpg,JPG)")
     parser.add_argument('--exclude', dest='exclude',
@@ -87,6 +92,11 @@ def main():
 
     args = parser.parse_args()
     ctx = Context()
+
+    if args.log_level:
+        logging_.basicConfig(level=args.log_level)
+    else:
+        logging_.basicConfig(level=logging_.WARN)
 
     if args.include and args.exclude:
         parser.error("Can't use --include and --exclude at the same time.")
@@ -112,6 +122,7 @@ def main():
             main.process_directory(a_directory)
         main.close()
 
+    pprint.pprint(main.ctx)
+
 if __name__ == '__main__':
-    logging_.basicConfig(level=logging_.DEBUG)
     main()
