@@ -63,6 +63,33 @@ class Context(dict):
         assert isinstance(extensions, (list, tuple))
         self.exclude_extensions = extensions
 
+    def get_log_processed(self):
+        #    self.log = {
+        #        '/path/to/directory': {
+        #            '.frockup.db': {
+        #                'excluded': True,
+        #                'excluded_reason': 'file-filter'
+        #            },
+        #           'fome-file.txt': {
+        #               'excluded': True,
+        #               'excluded_reason': 'local-metadata'
+        #            },
+        #           'some-other-file.txt': {
+        #               'excluded': True,
+        #                'excluded_reason': 'local-metadata'
+        #            },
+        #        }
+        #    }
+        excluded = []
+        included = []
+        for directory, entries in self.log.iteritems():
+            for filename, stat_dict in entries.iteritems():
+                if stat_dict.get('included', False):
+                    included.append([directory, filename])
+                elif stat_dict.get('excluded', False):
+                    excluded.append([directory, filename])
+        return included, excluded
+
 
 def get_config(filename=None):
     """Loads configuration and returns instance of ConfigParser"""

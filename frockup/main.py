@@ -146,8 +146,14 @@ def main():
                 main.process_directory(a_directory)
         main.close()
 
-    print "Statistics:"
-    pprint.pprint(ctx.log)
+    included, excluded = ctx.get_log_processed()
+    print "{0} included file(s):".format(len(included))
+    for dirname, filename in included:
+        print " + {0}/{1}".format(dirname, filename)
+
+    print "{0} excluded file(s):".format(len(excluded))
+    for dirname, filename in excluded:
+        print " - {0}/{1}".format(dirname, filename)
 
 if __name__ == '__main__':
     main()
