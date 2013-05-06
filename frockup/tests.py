@@ -292,6 +292,29 @@ class ConfigLoadTest(unittest.TestCase):
         config.get("defaults", "vault_arn")
 
 
+class GlacierTest(unittest.TestCase):
+
+    def _test_list_vaults(self):
+        amazon_identity_config_file = os.path.expanduser('~/.frockup/amazon.conf')
+        config = ConfigParser.ConfigParser()
+        config.read(amazon_identity_config_file)
+        from boto.glacier.layer1 import Layer1
+        l1 = Layer1(config.get("identity", "aws_access_key_id"),
+            config.get("identity", "aws_secret_access_key"))
+        vaults = l1.list_vaults()
+        # Things we should have...
+        vaults['Marker']
+        vaults['RequestId']
+        vaults['VaultList']
+        for a_vault in vaults['VaultList']:
+            a_vault['CreationDate']
+            a_vault['LastInventoryDate']
+            a_vault['NumberOfArchives']
+            a_vault['SizeInBytes']
+            a_vault['VaultARN']
+            a_vault['VaultName']
+        l1.close()
+
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)
     unittest.main()
