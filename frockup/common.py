@@ -68,6 +68,10 @@ def get_config(filename=None):
     """Loads configuration and returns instance of ConfigParser"""
     config_file = os.path.expanduser(filename or '~/.frockup/frockup.conf')
     logging.debug("Loading config from %s", config_file)
+    assert os.path.exists(config_file), \
+        "The configuration file {0} does not exists".format(config_file)
+    assert os.path.isfile(config_file), \
+        "The configuration {0} is not a regular file".format(config_file)
     config = ConfigParser.ConfigParser()
     config.read(config_file)
     return config
