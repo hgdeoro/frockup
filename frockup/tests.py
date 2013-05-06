@@ -279,7 +279,7 @@ class BaseTest(unittest.TestCase):
 class ConfigLoadTest(unittest.TestCase):
 
     def _test_read_default_config_file(self):
-        amazon_identity_config_file = os.path.expanduser('~/.frockup/amazon.conf')
+        amazon_identity_config_file = os.path.expanduser('~/.frockup/frockup.conf')
         self.assertTrue(os.path.exists(amazon_identity_config_file),
             "{0} doesn't exists".format(amazon_identity_config_file))
         config = ConfigParser.ConfigParser()
@@ -295,7 +295,7 @@ class ConfigLoadTest(unittest.TestCase):
 class GlacierTest(unittest.TestCase):
 
     def _test_list_vaults(self):
-        amazon_identity_config_file = os.path.expanduser('~/.frockup/amazon.conf')
+        amazon_identity_config_file = os.path.expanduser('~/.frockup/frockup.conf')
         config = ConfigParser.ConfigParser()
         config.read(amazon_identity_config_file)
         from boto.glacier.layer1 import Layer1
