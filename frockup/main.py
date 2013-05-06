@@ -21,7 +21,6 @@ import argparse
 import os
 import logging as logging_
 import traceback
-import pprint
 
 from frockup.common import Context, EXCLUDED_BY_FILE_FILTER, \
     EXCLUDED_BY_LOCAL_METADATA
@@ -140,7 +139,7 @@ def main():
     else:
         main = Main(ctx=ctx)
         if args.one_file:
-            main.process_directory(args.directory, args.one_file)
+            main.process_file(args.directory[0], args.one_file)
         else:
             for a_directory in args.directory:
                 main.process_directory(a_directory)
