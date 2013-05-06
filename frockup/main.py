@@ -34,7 +34,8 @@ logger = logging_.getLogger(__name__)
 
 class Main():
 
-    def __init__(self, ctx=None, file_filter=FileFilter, glacier=Glacier, local_metadata=LocalMetadata):
+    def __init__(self, ctx=None, file_filter=FileFilter, glacier=Glacier,
+        local_metadata=LocalMetadata):
         if ctx is None:
             self.ctx = Context()
         else:
@@ -58,8 +59,9 @@ class Main():
     def process_file(self, directory, filename):
         """Process a single file"""
         logger.debug("process_file(): '%s/%s'", directory, filename)
-        # check `directory`
+        # check `directory` (same of `process_directory()`)
         assert os.path.isabs(directory)
+        assert os.path.exists(directory)
         assert os.path.isdir(directory)
         # check `filename`
         assert not os.path.isabs(filename)
@@ -81,7 +83,8 @@ class Main():
         try:
             glacier_data = self.glacier.upload_file(directory, filename)
         except Exception, e:
-            logger.info("Exception '%s' detected while uploading file: '%s/%s'", e, directory, filename)
+            logger.info("Exception '%s' detected while uploading file: '%s/%s'", e, directory,
+                filename)
             error = traceback.format_exc() or str(e) or 'error'
 
         if error:
@@ -103,6 +106,8 @@ def main():
         help="File extensions to include, separated by commas (ej: jpg,JPG)")
     parser.add_argument('--exclude', dest='exclude',
         help="File extensions to exclude, separated by commas (ej: avi,AVI,mov,MOV,xcf,XCF)")
+    parser.add_argument('--one-file', dest='one_file',
+        help="To upload only one file, if needed")
     parser.add_argument('directory', nargs='+', metavar='DIRECTORY',
         help="Directory to backup")
 
@@ -134,8 +139,11 @@ def main():
             main.glacier.kill_ftp()
     else:
         main = Main(ctx=ctx)
-        for a_directory in args.directory:
-            main.process_directory(a_directory)
+        if args.one_file:
+            main.process_directory(args.directory, args.one_file)
+        else:
+            for a_directory in args.directory:
+                main.process_directory(a_directory)
         main.close()
 
     print "Statistics:"
