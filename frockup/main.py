@@ -34,9 +34,9 @@ logger = logging_.getLogger(__name__)
 class Main():
 
     def __init__(self, ctx=None, file_filter=FileFilter, glacier=Glacier,
-        local_metadata=LocalMetadata):
+        local_metadata=LocalMetadata, config=None):
         if ctx is None:
-            self.ctx = Context()
+            self.ctx = Context(config=config)
         else:
             self.ctx = ctx
         self.file_filter = file_filter(self.ctx)
@@ -93,6 +93,7 @@ class Main():
 
     def close(self):
         self.local_metadata.close()
+        self.glacier.close()
 
 
 def main():

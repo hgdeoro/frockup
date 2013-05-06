@@ -28,13 +28,14 @@ FLAG_FILE_CHANGED_WHILE_UPLOADING = 'file-changed'
 class Context(dict):
     """Context to share state between all the components"""
 
-    def __init__(self):
+    def __init__(self, config=None):
         self.log = {}
         self.excluded_count = 0
         self.included_count = 0
         self.error_count = 0
         self.include_extensions = []
         self.exclude_extensions = []
+        self.config = config or get_config()
 
     def add_log(self, directory, filename, **kwargs):
         self.log[directory] = self.log.get(directory, dict())

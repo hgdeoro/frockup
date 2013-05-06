@@ -39,14 +39,33 @@ class Glacier():
 
     def __init__(self, ctx):
         self.ctx = ctx
+        self.layer2 = None
 
     def upload_file(self, directory, filename):
         """Uploads a file to glacier. Returns an instance of GlacierData"""
         logger.debug("Uploading file '%s/%s'", directory, filename)
-        raise Exception("IMPLEMENTAAAAAAAARRRRRRRR")
+        from boto.glacier.layer2 import Layer2
+        self.layer2 = Layer2(
+            self.ctx.config.get("identity", "aws_access_key_id"),
+            self.ctx.config.get("identity", "aws_secret_access_key")
+        )
+
+        vault = self.layer2.get_vault(self.ctx.config.get("defaults", "vault_name"))
+        archive_id = vault.create_archive_from_file(os.path.join(directory, filename),
+            description=os.path.join(directory, filename))
+
         glacier_data = GlacierData()
-        glacier_data.archive_id = str(uuid.uuid4())
+        glacier_data.archive_id = archive_id
         return glacier_data
+
+    def close(self):
+        if self.layer2:
+            try:
+                self.layer2.close()
+            except:
+                logger.warn("Exception detected when trying to close(), will ignore it...")
+            finally:
+                self.layer2 = None
 
 
 #===============================================================================
@@ -63,6 +82,9 @@ class GlacierMock():
         glacier_data = GlacierData()
         glacier_data.archive_id = str(uuid.uuid4())
         return glacier_data
+
+    def close(self):
+        pass
 
 
 class GlacierErrorOnUploadMock(GlacierMock):
@@ -131,3 +153,6 @@ class GlacierFtpBased():
         glacier_data = GlacierData()
         glacier_data.archive_id = generated_uuid
         return glacier_data
+
+    def close(self):
+        pass
