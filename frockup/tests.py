@@ -25,7 +25,6 @@ import uuid
 import pprint
 import shutil
 import time
-import ConfigParser
 
 from frockup.main import Main
 from frockup.glacier import GlacierFtpBased, GlacierMock, \
