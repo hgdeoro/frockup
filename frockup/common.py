@@ -16,6 +16,9 @@
 #    You should have received a copy of the GNU General Public License
 #    along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #===============================================================================
+import os
+import logging
+import ConfigParser
 
 EXCLUDED_BY_FILE_FILTER = 'file-filter'
 EXCLUDED_BY_LOCAL_METADATA = 'local-metadata'
@@ -59,3 +62,12 @@ class Context(dict):
     def set_exclude_extensions(self, extensions):
         assert isinstance(extensions, (list, tuple))
         self.exclude_extensions = extensions
+
+
+def get_config(filename=None):
+    """Loads configuration and returns instance of ConfigParser"""
+    config_file = os.path.expanduser(filename or '~/.frockup/frockup.conf')
+    logging.debug("Loading config from %s", config_file)
+    config = ConfigParser.ConfigParser()
+    config.read(config_file)
+    return config

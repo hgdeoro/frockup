@@ -30,6 +30,7 @@ import ConfigParser
 from frockup.main import Main
 from frockup.glacier import GlacierFtpBased, GlacierMock, \
     GlacierErrorOnUploadMock
+from frockup.common import get_config
 
 
 def _generate_local_metadata_db(directory, files, overwrite=False):
@@ -279,12 +280,7 @@ class BaseTest(unittest.TestCase):
 class ConfigLoadTest(unittest.TestCase):
 
     def _test_read_default_config_file(self):
-        amazon_identity_config_file = os.path.expanduser('~/.frockup/frockup.conf')
-        self.assertTrue(os.path.exists(amazon_identity_config_file),
-            "{0} doesn't exists".format(amazon_identity_config_file))
-        config = ConfigParser.ConfigParser()
-        config.read(amazon_identity_config_file)
-
+        config = get_config()
         config.get("identity", "aws_access_key_id")
         config.get("identity", "aws_secret_access_key")
         config.get("defaults", "region")
@@ -295,9 +291,7 @@ class ConfigLoadTest(unittest.TestCase):
 class GlacierTest(unittest.TestCase):
 
     def _test_list_vaults(self):
-        amazon_identity_config_file = os.path.expanduser('~/.frockup/frockup.conf')
-        config = ConfigParser.ConfigParser()
-        config.read(amazon_identity_config_file)
+        config = get_config()
         from boto.glacier.layer1 import Layer1
         l1 = Layer1(config.get("identity", "aws_access_key_id"),
             config.get("identity", "aws_secret_access_key"))
