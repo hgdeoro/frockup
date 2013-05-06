@@ -21,6 +21,7 @@ import argparse
 import os
 import logging as logging_
 import traceback
+import time
 
 from frockup.common import Context, EXCLUDED_BY_FILE_FILTER, \
     EXCLUDED_BY_LOCAL_METADATA
@@ -71,16 +72,23 @@ class Main():
 
         if not self.file_filter.include_file(directory, filename):
             self.ctx.add_excluded(directory, filename, EXCLUDED_BY_FILE_FILTER)
+            logger.info("Ignoring file %s (excluded by filter)", filename)
             return
         file_stats = self.local_metadata.include_file(directory, filename)
         assert isinstance(file_stats, (FileStats, bool))
         if file_stats is False:
             self.ctx.add_excluded(directory, filename, EXCLUDED_BY_LOCAL_METADATA)
+            logger.info("Ignoring file %s (excluded by metadata)", filename)
             return
         self.ctx.add_included(directory, filename)
         error = None
         try:
+            logger.info("Starting upload of file '%s'...", filename)
+            start_time = time.time()
             glacier_data = self.glacier.upload_file(directory, filename)
+            end_time = time.time()
+            logger.info(" + upload complete! Took %s secs, %s kbps", end_time - start_time,
+                (file_stats.stats.st_size / (end_time - start_time)) / 1024.0)
         except Exception, e:
             logger.info("Exception '%s' detected while uploading file: '%s/%s'", e, directory,
                 filename)
@@ -98,9 +106,9 @@ class Main():
 
 def main():
     parser = argparse.ArgumentParser(description='Backup files to Glacier')
-    parser.add_argument('--info', dest='log_level', action='store_const', const=logging_.INFO,
+    parser.add_argument('--info', dest='log_level', action='store_const', const='info',
         help="Set log level to info")
-    parser.add_argument('--debug', dest='log_level', action='store_const', const=logging_.DEBUG,
+    parser.add_argument('--debug', dest='log_level', action='store_const', const='debug',
         help="Set log level to debug")
     parser.add_argument('--include', dest='include',
         help="File extensions to include, separated by commas (ej: jpg,JPG)")
@@ -112,12 +120,14 @@ def main():
         help="Directory to backup")
 
     args = parser.parse_args()
-    ctx = Context()
-
-    if args.log_level:
-        logging_.basicConfig(level=args.log_level)
+    if args.log_level == 'debug':
+        logging_.basicConfig(level=logging_.DEBUG)
+    elif args.log_level == 'info':
+        logging_.basicConfig(level=logging_.INFO)
     else:
         logging_.basicConfig(level=logging_.WARN)
+
+    ctx = Context()
 
     if args.include and args.exclude:
         parser.error("Can't use --include and --exclude at the same time.")
