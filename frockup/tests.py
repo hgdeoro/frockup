@@ -25,6 +25,7 @@ import uuid
 import pprint
 import shutil
 import time
+import ConfigParser
 
 from frockup.main import Main
 from frockup.glacier import GlacierFtpBased, GlacierMock, \
@@ -273,6 +274,22 @@ class BaseTest(unittest.TestCase):
     def test_change_in_file_while_upload_is_detected(self):
         # FIXME: implement this test!
         pass
+
+
+class ConfigLoadTest(unittest.TestCase):
+
+    def _test_read_default_config_file(self):
+        amazon_identity_config_file = os.path.expanduser('~/.frockup/amazon.conf')
+        self.assertTrue(os.path.exists(amazon_identity_config_file),
+            "{0} doesn't exists".format(amazon_identity_config_file))
+        config = ConfigParser.ConfigParser()
+        config.read(amazon_identity_config_file)
+
+        config.get("identity", "aws_access_key_id")
+        config.get("identity", "aws_secret_access_key")
+        config.get("defaults", "region")
+        config.get("defaults", "vault_name")
+        config.get("defaults", "vault_arn")
 
 
 if __name__ == '__main__':
