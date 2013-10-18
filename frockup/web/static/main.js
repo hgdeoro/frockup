@@ -100,6 +100,10 @@ frockup.controller('GlobalController', function($scope, $location, $timeout,
 	$scope.syncDirectory = function(directory) {
 		$scope.extras.processing_directory = directory;
 
+		remoteService.callMethod('launch_process').success(function(data) {
+		}).error(function(data) {
+		});
+
 		$timeout(function() {
 			$scope.extras.processing_directory = null;
 		}, 2000);

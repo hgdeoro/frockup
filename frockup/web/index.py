@@ -8,7 +8,7 @@ from frockup.file_filter import FileFilter
 from frockup.common import Context
 from frockup.main import _should_process_file
 from frockup.local_metadata import LocalMetadata
-from frockup.web.background import ACTION_GET_STATUS, start
+from frockup.web.background import ACTION_GET_STATUS, start, ACTION_LAUNCH
 
 app = Flask(__name__)
 app.debug = True
@@ -30,6 +30,11 @@ class Remote(object):
         parent_conn.send({'action': ACTION_GET_STATUS})
         data = parent_conn.recv()
         return {'message': data}
+
+    def launch_process(self, function_args):
+        parent_conn.send({'action': ACTION_LAUNCH, 'directory': 'd', 'filename': 'f'})
+        data = parent_conn.recv()
+        return data
 
     def load_directory(self, function_args):
         base_dir = function_args[0]
