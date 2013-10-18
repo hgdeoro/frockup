@@ -317,7 +317,7 @@ class FileFilterTest(unittest.TestCase):
         ctx.set_include_extensions(('jpg', 'png'))  # Only include JPGs
         file_filter = FileFilter(ctx)
         INCLUDED = ('x.jpg', 'X.JPG', 'z.PNG')
-        EXCLUDED = ('x.zip', 'X.ZIP', 'xjpg', 'XJPG')
+        EXCLUDED = ('x.zip', 'X.ZIP', 'xjpg', 'XJPG', '.algojpg')
         for filename in INCLUDED:
             self.assertTrue(file_filter.include_file('/', filename),
                             "File {} should be included".format(filename))
@@ -330,7 +330,7 @@ class FileFilterTest(unittest.TestCase):
         ctx.set_exclude_extensions(('jpg', 'png'))  # Include all, exclude JPGs
         file_filter = FileFilter(ctx)
         EXCLUDED = ('x.jpg', 'X.JPG', 'z.PNG')
-        INCLUDED = ('x.zip', 'X.ZIP', 'xjpg', 'XJPG')
+        INCLUDED = ('x.zip', 'X.ZIP', 'xjpg', 'XJPG', '.algojpg')
         for filename in INCLUDED:
             self.assertTrue(file_filter.include_file('/', filename),
                             "File {} should be included".format(filename))
