@@ -1,8 +1,17 @@
 <div ng-init="">
 
-    <input type="text" ng-model="extras.directory">
-    <button type="button" ng-click="checkDirectory()" class="btn">Refresh</button>
+    <div>
+        <input type="text" ng-model="extras.directory">
+        <button type="button" ng-click="checkDirectory()" class="btn btn-primary">Refresh</button>
+    </div>
 
+    <div class="well well-sm" style="margin-top: 1em;">
+        History:
+        <span ng-repeat="a_dir in getLocalHistoryDirs()">
+            <button type="button" ng-click="extras.directory = a_dir ; checkDirectory()" class="btn btn-primary btn-xs">{{a_dir}}</button>
+        </span>
+        <button type="button" ng-click="resetLocalHistoryDirs()" class="btn btn-danger btn-xs">Reset</button>
+    </div>
 
     <table ng-show="extras.directories" class="table" style="margin-top: 1em;">
         <tr>

@@ -50,11 +50,39 @@ frockup.controller('GlobalController', function($scope, $location,
 		directories : [],
 	};
 
+	$scope.addDirToLocalHistory = function(directory) {
+		var frockupDirHistory = localStorage.getItem('frockupDirHistory');
+		if (frockupDirHistory == null) {
+			frockupDirHistory = [];
+		} else {
+			frockupDirHistory = JSON.parse(frockupDirHistory);
+		}
+
+		if (frockupDirHistory.indexOf(directory) == -1) {
+			frockupDirHistory.push(directory);
+			frockupDirHistory.sort();
+
+			localStorage.setItem('frockupDirHistory', JSON
+					.stringify(frockupDirHistory));
+		}
+
+	};
+
+	$scope.getLocalHistoryDirs = function() {
+		return JSON.parse(localStorage.getItem('frockupDirHistory'));
+	};
+
+	$scope.resetLocalHistoryDirs = function() {
+		localStorage.removeItem('frockupDirHistory');
+	};
+
 	$scope.checkDirectory = function() {
 
 		$scope.safeApply(function() {
 			$scope.extras.spinner = true;
 		});
+
+		$scope.addDirToLocalHistory($scope.extras.directory);
 
 		remoteService.callMethod('load_directory', $scope.extras.directory)
 				.success(function(data) {
