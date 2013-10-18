@@ -24,20 +24,22 @@ import uuid
 import pprint
 import shutil
 import time
+import gdbm
+import json
 
 from frockup.main import Main
 from frockup.glacier import GlacierFtpBased, GlacierMock, \
     GlacierErrorOnUploadMock
 from frockup.common import get_config, Context
 from frockup.file_filter import FileFilter
-import gdbm
-import json
+
+DB_FILENAME = '.frockup.gdbm'
 
 
 def _generate_local_metadata_db(directory, files, overwrite=False):
     assert os.path.exists(directory)
     # Create local metadata DB
-    db_filename = os.path.join(directory, '.frockup.db')
+    db_filename = os.path.join(directory, DB_FILENAME)
     if overwrite and os.path.exists(db_filename):
         os.unlink(db_filename)
     assert not os.path.exists(db_filename)
@@ -75,9 +77,14 @@ class BaseTest(unittest.TestCase):
         except OSError:
             pass
 
+        try:
+            os.unlink(os.path.join(dirname, DB_FILENAME))
+        except OSError:
+            pass
+
     def _get_db_copy(self, dirname):
         """Returns a dict with a copy of the DB contents"""
-        db = gdbm.open(os.path.join(dirname, '.frockup.gdbm'), 'c')
+        db = gdbm.open(os.path.join(dirname, DB_FILENAME), 'c')
         copy = {}
         k = db.firstkey()
         while k != None:
@@ -100,7 +107,7 @@ class BaseTest(unittest.TestCase):
         self.assertEqual(main.ctx.included_count, 3)
         self.assertEqual(main.ctx.excluded_count, 0)
         # Check that local metadata was created
-        db_filename = os.path.join(dir1, '.frockup.db')
+        db_filename = os.path.join(dir1, DB_FILENAME)
         database = gdbm.open(db_filename, 'c')
         logging.debug("Database at %s: %s", db_filename, pprint.pformat(database))
         for filename in ('file1.txt', 'file2.txt', 'file3.txt'):
@@ -125,7 +132,7 @@ class BaseTest(unittest.TestCase):
         self.assertEqual(main.ctx.included_count, 0)
         self.assertIn(main.ctx.excluded_count, [3, 4])
         # Check that local metadata wasn't changed
-        db_filename = os.path.join(dir2, '.frockup.db')
+        db_filename = os.path.join(dir2, DB_FILENAME)
         database = gdbm.open(db_filename, 'c')
         logging.debug("Database at %s: %s", db_filename, pprint.pformat(database))
         for filename in ('file1.txt', 'file2.txt', 'file3.txt'):
@@ -161,7 +168,7 @@ class BaseTest(unittest.TestCase):
             # Check statistics
             logging.debug("Log: %s", pprint.pformat(main.ctx.log))
             self.assertEqual(main.ctx.included_count, 0)
-            self.assertEqual(main.ctx.excluded_count, 2)  # .frockup.db + file1.txt
+            self.assertEqual(main.ctx.excluded_count, 2)  # .frockup.gdbm + file1.txt
 
         # --- Add `file2.txt`
         file2_path = os.path.join(dir3, 'file2.txt')
@@ -174,7 +181,7 @@ class BaseTest(unittest.TestCase):
         # Check statistics
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
         self.assertEqual(main.ctx.included_count, 1)  # file2.txt
-        self.assertEqual(main.ctx.excluded_count, 2)  # .frockup.db + file1.txt
+        self.assertEqual(main.ctx.excluded_count, 2)  # .frockup.gdbm + file1.txt
 
         # --- Call process_directory() ---
         main = Main(glacier=GlacierMock)
@@ -183,7 +190,7 @@ class BaseTest(unittest.TestCase):
         # Check statistics
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
         self.assertEqual(main.ctx.included_count, 0)
-        self.assertEqual(main.ctx.excluded_count, 3)  # .frockup.db + file1.txt + file2.txt
+        self.assertEqual(main.ctx.excluded_count, 3)  # .frockup.gdbm + file1.txt + file2.txt
 
         # --- Touch `file2.txt`
         os.utime(file2_path, (1, 1))
@@ -195,7 +202,7 @@ class BaseTest(unittest.TestCase):
         # Check statistics
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
         self.assertEqual(main.ctx.included_count, 1)  # file2.txt
-        self.assertEqual(main.ctx.excluded_count, 2)  # .frockup.db + file1.txt
+        self.assertEqual(main.ctx.excluded_count, 2)  # .frockup.gdbm + file1.txt
 
         # Check `old_archive_ids`
         db = self._get_db_copy(dir3)
@@ -209,7 +216,7 @@ class BaseTest(unittest.TestCase):
         # Check statistics
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
         self.assertEqual(main.ctx.included_count, 0)
-        self.assertEqual(main.ctx.excluded_count, 3)  # .frockup.db + file1.txt + file2.txt
+        self.assertEqual(main.ctx.excluded_count, 3)  # .frockup.gdbm + file1.txt + file2.txt
 
         # Check `old_archive_ids`
         db = self._get_db_copy(dir3)
@@ -227,7 +234,7 @@ class BaseTest(unittest.TestCase):
         # Check statistics
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
         self.assertEqual(main.ctx.included_count, 1)  # file2.txt
-        self.assertEqual(main.ctx.excluded_count, 2)  # .frockup.db + file1.txt
+        self.assertEqual(main.ctx.excluded_count, 2)  # .frockup.gdbm + file1.txt
 
         # Check `old_archive_ids`
         db = self._get_db_copy(dir3)
@@ -241,7 +248,7 @@ class BaseTest(unittest.TestCase):
         # Check statistics
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
         self.assertEqual(main.ctx.included_count, 0)
-        self.assertEqual(main.ctx.excluded_count, 3)  # .frockup.db + file1.txt + file2.txt
+        self.assertEqual(main.ctx.excluded_count, 3)  # .frockup.gdbm + file1.txt + file2.txt
 
         # Check `old_archive_ids`
         db = self._get_db_copy(dir3)
@@ -324,7 +331,8 @@ class FileFilterTest(unittest.TestCase):
         ctx.set_include_extensions(('jpg', 'png'))  # Only include JPGs
         file_filter = FileFilter(ctx)
         INCLUDED = ('x.jpg', 'X.JPG', 'z.PNG')
-        EXCLUDED = ('x.zip', 'X.ZIP', 'xjpg', 'XJPG', '.algojpg')
+        EXCLUDED = ('x.zip', 'X.ZIP', 'xjpg', 'XJPG', '.algojpg',
+                    '.frockup', '.frockup-yadayadayada')
         for filename in INCLUDED:
             self.assertTrue(file_filter.include_file('/', filename),
                             "File {} should be included".format(filename))
@@ -336,8 +344,8 @@ class FileFilterTest(unittest.TestCase):
         ctx = Context()
         ctx.set_exclude_extensions(('jpg', 'png'))  # Include all, exclude JPGs
         file_filter = FileFilter(ctx)
-        EXCLUDED = ('x.jpg', 'X.JPG', 'z.PNG')
-        INCLUDED = ('x.zip', 'X.ZIP', 'xjpg', 'XJPG', '.algojpg')
+        EXCLUDED = ('x.jpg', 'X.JPG', 'z.PNG', '.algojpg', '.frockup', '.frockup-yadayadayada')
+        INCLUDED = ('x.zip', 'X.ZIP', 'xjpg', 'XJPG')
         for filename in INCLUDED:
             self.assertTrue(file_filter.include_file('/', filename),
                             "File {} should be included".format(filename))

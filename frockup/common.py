@@ -67,7 +67,7 @@ class Context(dict):
     def get_log_processed(self):
         #    self.log = {
         #        '/path/to/directory': {
-        #            '.frockup.db': {
+        #            '.frockup.gdbm': {
         #                'excluded': True,
         #                'excluded_reason': 'file-filter'
         #            },

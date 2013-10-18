@@ -37,8 +37,12 @@ class FileFilter():
 
     def include_file(self, directory, filename):
         """Returns True if the file must be included in the backup, False otherwise"""
-        if filename == '.frockup.db':
-            logger.debug("Excluding '%s/%s'", directory, filename)
+        if filename.startswith('.frockup'):
+            logger.debug("Excluding .frockup*: '%s/%s'", directory, filename)
+            return False
+
+        if filename.startswith('.'):
+            logger.debug("Excluding .*: '%s/%s'", directory, filename)
             return False
 
         if self.ctx.include_extensions:
