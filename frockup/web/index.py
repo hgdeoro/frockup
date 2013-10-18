@@ -2,6 +2,7 @@ from flask import Flask, jsonify, request, json
 import traceback
 import logging
 import os
+import random
 
 app = Flask(__name__)
 app.debug = True
@@ -20,6 +21,9 @@ class Remote(object):
                 'name': root,
                 'files': files,
                 'files_count': len(files),
+                'ignored_count': random.randint(4, 15),
+                'updated_count': random.randint(4, 15),
+                'pending_count': random.randint(0, 10),
             }
             directories.append(directory)
 
@@ -58,9 +62,6 @@ def callMethod():
         to_return = None
         exception_traceback = traceback.format_exc()
         logging.exception("Exception detected when calling interceptor")
-
-    import time
-    time.sleep(1)
 
     return jsonify({'ret': to_return, 'exc': exception_traceback})
 

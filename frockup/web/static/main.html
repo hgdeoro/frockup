@@ -6,27 +6,30 @@
     </div>
 
     <div class="well well-sm" style="margin-top: 1em;">
-        History:
-        <span ng-repeat="a_dir in getLocalHistoryDirs()">
+        History: <span ng-repeat="a_dir in getLocalHistoryDirs()">
             <button type="button" ng-click="extras.directory = a_dir ; checkDirectory()" class="btn btn-primary btn-xs">{{a_dir}}</button>
         </span>
         <button type="button" ng-click="resetLocalHistoryDirs()" class="btn btn-danger btn-xs">Reset</button>
     </div>
 
-    <table ng-show="extras.directories" class="table" style="margin-top: 1em;">
+    <table ng-show="extras.directories" class="table table-condensed" style="margin-top: 1em;">
         <tr>
+            <th width="1%">&nbsp;</th>
             <th width="60%">Directory</th>
             <th width="10%" class="r">Files</th>
             <th width="10%" class="r">Ignored</th>
             <th width="10%" class="r">Uploaded</th>
             <th width="10%" class="r">Pending</th>
         </tr>
-        <tr ng-repeat="a_dir in extras.directories">
+        <tr ng-repeat="a_dir in extras.directories" ng-class="{ success: ! a_dir.pending_count}">
+            <td>
+                <span ng-show="! a_dir.pending_count"><i class="glyphicon glyphicon-check"></i></span>
+            </td>
             <td>{{ a_dir.name }}</td>
             <td class="r">{{ a_dir.files_count }}</td>
-            <td class="r">55</td>
-            <td class="r">55</td>
-            <td class="r">55</td>
+            <td class="r">{{ a_dir.ignored_count }}</td>
+            <td class="r">{{ a_dir.updated_count }}</td>
+            <td class="r">{{ a_dir.pending_count }}</td>
         </tr>
     </table>
 
