@@ -16,6 +16,11 @@
         Config: <label><input type="checkbox" ng-model="extras.show_completed">&nbsp;Show completed</label>
     </div>
 
+    <div ng-show="extras.processing_directory">
+        <a href="javascript:void(0);"><i class="icon-spinner icon-spin icon-large"></i> Processing directory <span
+            ng-bind="extras.processing_directory"></span></a>
+    </div>
+
     <table ng-show="extras.directories" class="table table-condensed" style="margin-top: 1em;">
         <tr>
             <th width="1%">
@@ -32,7 +37,14 @@
             <td>
                 <span ng-show="! a_dir.pending_count"><i class="glyphicon glyphicon-check"></i></span>
             </td>
-            <td>{{ a_dir.name }}</td>
+            <td>
+                <div style="float: left;">{{ a_dir.name }}</div>
+                <div style="float: right;">
+                    <button ng-show="a_dir.pending_count" ng-click="syncDirectory(a_dir.name)"
+                        class="btn btn-primary btn-xs">Sync</button>
+                </div>
+
+            </td>
             <td class="r">{{ a_dir.files_count }}</td>
             <td class="r">{{ a_dir.ignored_count }}</td>
             <td class="r">{{ a_dir.updated_count }}</td>

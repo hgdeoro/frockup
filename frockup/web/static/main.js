@@ -41,7 +41,7 @@ frockup.factory('remoteService', function($http) {
 	return remoteService;
 });
 
-frockup.controller('GlobalController', function($scope, $location,
+frockup.controller('GlobalController', function($scope, $location, $timeout,
 		remoteService) {
 
 	$scope.extras = {
@@ -49,6 +49,7 @@ frockup.controller('GlobalController', function($scope, $location,
 		spinner : false,
 		directories : [],
 		show_completed : true,
+		processing_directory : null,
 	};
 
 	$scope.addDirToLocalHistory = function(directory) {
@@ -93,6 +94,14 @@ frockup.controller('GlobalController', function($scope, $location,
 					$scope.extras.spinner = false;
 					$scope.extras.directories = [];
 				});
+	};
+
+	$scope.syncDirectory = function(directory) {
+		$scope.extras.processing_directory = directory;
+
+		$timeout(function() {
+			$scope.extras.processing_directory = null;
+		}, 2000);
 	};
 
 	$scope.isCurrentPath = function(path) {
