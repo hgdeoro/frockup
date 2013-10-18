@@ -32,6 +32,34 @@ from frockup.local_metadata import LocalMetadata, FileStats
 logger = logging_.getLogger(__name__)
 
 
+def _should_process_file(directory, filename, file_filter, local_metadata, ctx):
+    # check `directory` (same of `process_directory()`)
+    assert os.path.isabs(directory)
+    assert os.path.exists(directory)
+    assert os.path.isdir(directory)
+    # check `filename`
+    assert not os.path.isabs(filename)
+    full_filename = os.path.join(directory, filename)
+    assert not os.path.isdir(full_filename)
+    assert os.path.exists(full_filename)
+    assert os.path.isfile(full_filename)
+
+    if not file_filter.include_file(directory, filename):
+        ctx.add_excluded(directory, filename, EXCLUDED_BY_FILE_FILTER)
+        logger.info("Ignoring file %s (excluded by filter)", filename)
+        return (False, None)
+
+    file_stats = local_metadata.include_file(directory, filename)
+    assert isinstance(file_stats, (FileStats, bool))
+    if file_stats is False:
+        ctx.add_excluded(directory, filename, EXCLUDED_BY_LOCAL_METADATA)
+        logger.info("Ignoring file %s (excluded by metadata)", filename)
+        return (False, file_stats)
+
+    ctx.add_included(directory, filename)
+    return (True, file_stats)
+
+
 class Main():
 
     def __init__(self, ctx=None, file_filter=FileFilter, glacier=Glacier,
@@ -59,28 +87,13 @@ class Main():
     def process_file(self, directory, filename):
         """Process a single file"""
         logger.debug("process_file(): '%s/%s'", directory, filename)
-        # check `directory` (same of `process_directory()`)
-        assert os.path.isabs(directory)
-        assert os.path.exists(directory)
-        assert os.path.isdir(directory)
-        # check `filename`
-        assert not os.path.isabs(filename)
-        full_filename = os.path.join(directory, filename)
-        assert not os.path.isdir(full_filename)
-        assert os.path.exists(full_filename)
-        assert os.path.isfile(full_filename)
 
-        if not self.file_filter.include_file(directory, filename):
-            self.ctx.add_excluded(directory, filename, EXCLUDED_BY_FILE_FILTER)
-            logger.info("Ignoring file %s (excluded by filter)", filename)
+        should_proc, file_stats = _should_process_file(directory, filename, self.file_filter,
+                                                       self.local_metadata, self.ctx)
+
+        if not should_proc:
             return
-        file_stats = self.local_metadata.include_file(directory, filename)
-        assert isinstance(file_stats, (FileStats, bool))
-        if file_stats is False:
-            self.ctx.add_excluded(directory, filename, EXCLUDED_BY_LOCAL_METADATA)
-            logger.info("Ignoring file %s (excluded by metadata)", filename)
-            return
-        self.ctx.add_included(directory, filename)
+
         error = None
         try:
             logger.info("Starting upload of file '%s'...", filename)
