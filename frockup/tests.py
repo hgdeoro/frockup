@@ -29,7 +29,8 @@ import time
 from frockup.main import Main
 from frockup.glacier import GlacierFtpBased, GlacierMock, \
     GlacierErrorOnUploadMock
-from frockup.common import get_config
+from frockup.common import get_config, Context
+from frockup.file_filter import FileFilter
 
 
 def _generate_local_metadata_db(directory, files, overwrite=False):
@@ -307,6 +308,36 @@ class GlacierTest(unittest.TestCase):
             a_vault['VaultARN']
             a_vault['VaultName']
         l1.close()
+
+
+class FileFilterTest(unittest.TestCase):
+
+    def test_include(self):
+        ctx = Context()
+        ctx.set_include_extensions(('jpg', 'png'))  # Only include JPGs
+        file_filter = FileFilter(ctx)
+        INCLUDED = ('x.jpg', 'X.JPG', 'z.PNG')
+        EXCLUDED = ('x.zip', 'X.ZIP', 'xjpg', 'XJPG')
+        for filename in INCLUDED:
+            self.assertTrue(file_filter.include_file('/', filename),
+                            "File {} should be included".format(filename))
+        for filename in EXCLUDED:
+            self.assertFalse(file_filter.include_file('/', filename),
+                            "File {} should be excluded".format(filename))
+
+    def test_exclude(self):
+        ctx = Context()
+        ctx.set_exclude_extensions(('jpg', 'png'))  # Include all, exclude JPGs
+        file_filter = FileFilter(ctx)
+        EXCLUDED = ('x.jpg', 'X.JPG', 'z.PNG')
+        INCLUDED = ('x.zip', 'X.ZIP', 'xjpg', 'XJPG')
+        for filename in INCLUDED:
+            self.assertTrue(file_filter.include_file('/', filename),
+                            "File {} should be included".format(filename))
+        for filename in EXCLUDED:
+            self.assertFalse(file_filter.include_file('/', filename),
+                            "File {} should be excluded".format(filename))
+
 
 if __name__ == '__main__':
     logging.basicConfig(level=logging.DEBUG)

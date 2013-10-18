@@ -18,6 +18,7 @@
 #===============================================================================
 
 import logging as logging_
+import os
 
 logger = logging_.getLogger(__name__)
 
@@ -27,6 +28,8 @@ class FileFilter():
     Service that filters files to include in backup based on the file's properties,
     like directory, extension, last modification time, etc. (but does NOT
     check file metadata nor knows if the file was already uploaded).
+
+    Filename extensions checks are CASE INSENSITIVE.
     """
 
     def __init__(self, ctx):
@@ -37,6 +40,23 @@ class FileFilter():
         if filename == '.frockup.db':
             logger.debug("Excluding '%s/%s'", directory, filename)
             return False
+
+        if self.ctx.include_extensions:
+            if os.path.splitext(filename.lower())[1][1:] in self.ctx.include_extensions:
+                logger.debug("Including '%s/%s' (matched 'include')", directory, filename)
+                return True
+            else:
+                logger.debug("Ignoring '%s/%s' (not matched 'include')", directory, filename)
+                return False
+
+        if self.ctx.exclude_extensions:
+            if os.path.splitext(filename.lower())[1][1:] in self.ctx.exclude_extensions:
+                logger.debug("Ignoring '%s/%s' (matched 'exclude')", directory, filename)
+                return False
+            else:
+                logger.debug("Including '%s/%s' (not matched 'exclude')", directory, filename)
+                return True
+
         logger.debug("Including '%s/%s'", directory, filename)
         return True
 

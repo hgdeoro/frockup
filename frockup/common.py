@@ -58,11 +58,11 @@ class Context(dict):
 
     def set_include_extensions(self, extensions):
         assert isinstance(extensions, (list, tuple))
-        self.include_extensions = extensions
+        self.include_extensions = [tmp.lower() for tmp in extensions]
 
     def set_exclude_extensions(self, extensions):
         assert isinstance(extensions, (list, tuple))
-        self.exclude_extensions = extensions
+        self.exclude_extensions = [tmp.lower() for tmp in extensions]
 
     def get_log_processed(self):
         #    self.log = {
