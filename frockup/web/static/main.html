@@ -1,4 +1,24 @@
-<h4>Backup</h4>
+<div ng-init="">
 
-<input type="text" ng-model="extras.directory">
-<button type="button" ng-click="checkDirectory()" class="btn">Refresh</button>
+    <input type="text" ng-model="extras.directory">
+    <button type="button" ng-click="checkDirectory()" class="btn">Refresh</button>
+
+
+    <table ng-show="extras.directories" class="table" style="margin-top: 1em;">
+        <tr>
+            <th>Directory</th>
+            <th>Files</th>
+            <th>Ignored</th>
+            <th>Uploaded</th>
+            <th>Pending</th>
+        </tr>
+        <tr ng-repeat="a_dir in extras.directories">
+            <td>{{ a_dir }}</td>
+            <td>55</td>
+            <td>55</td>
+            <td>55</td>
+            <td>55</td>
+        </tr>
+    </table>
+
+</div>
