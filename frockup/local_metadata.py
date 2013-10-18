@@ -18,8 +18,9 @@
 #===============================================================================
 
 import logging as logging_
-import shelve
+import gdbm
 import os
+import json
 
 from frockup.glacier import GlacierData
 from frockup.common import FLAG_FILE_CHANGED_WHILE_UPLOADING, Context
@@ -80,10 +81,21 @@ class LocalMetadata():
                 # just return, the current DB is the good one
                 return
 
-        db_filename = os.path.join(directory, '.frockup.db')
+        db_filename = os.path.join(directory, '.frockup.gdbm')
         logger.debug("Opening metadata DB at '%s'", db_filename)
         self.last_directory = directory
-        self.database = shelve.open(db_filename)
+        self.database = gdbm.open(db_filename, 'c')
+
+    def _get_filename_data(self, filename):
+        try:
+            raw_data = self.database[filename]
+            data = json.loads(raw_data)
+            return data
+        except KeyError:
+            return {}
+
+    def _set_filename_data(self, filename, data):
+        self.database[filename] = json.dumps(data)
 
     def include_file(self, directory, filename):
         """Returns an instance of FileStats if the file must be included in the backup,
@@ -93,10 +105,7 @@ class LocalMetadata():
         assert os.path.isfile(full_filename)
         file_stats = os.stat(full_filename)
         self._opendb(directory)
-        try:
-            data = self.database[filename]
-        except KeyError:
-            data = {}
+        data = self._get_filename_data(filename)
 
         if self._file_stats_and_local_metadata_equals(file_stats, data):
             logger.debug("Excluding %s/%s (metadata are equals)", directory, filename)
@@ -111,12 +120,7 @@ class LocalMetadata():
         assert isinstance(glacier_data, GlacierData)
         assert isinstance(file_stats, FileStats)
         self._opendb(directory)
-        try:
-            data = self.database[filename]
-            logger.debug("Entry exists in local metadata DB for file %s", filename)
-        except KeyError:
-            logger.debug("Creating new entry in local metadata DB for file %s", filename)
-            data = {}
+        data = self._get_filename_data(filename)
         if 'archive_id' in data:
             # save old value
             if not 'old_archive_ids' in data:
@@ -125,8 +129,8 @@ class LocalMetadata():
         data['archive_id'] = glacier_data.archive_id
         data['stats.st_size'] = file_stats.stats.st_size
         data['stats.st_mtime'] = file_stats.stats.st_mtime
-        self.database[filename] = data
-        self.database.sync()
+
+        self._set_filename_data(filename, data)
 
         current_stats = os.stat(os.path.join(directory, filename))
         if not self._stats_equals(current_stats, file_stats.stats):
