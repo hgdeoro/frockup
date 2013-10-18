@@ -50,6 +50,7 @@ frockup.controller('GlobalController', function($scope, $location, $timeout,
 		directories : [],
 		show_completed : true,
 		processing_directory : null,
+		background_process_status : null,
 	};
 
 	$scope.addDirToLocalHistory = function(directory) {
@@ -102,6 +103,16 @@ frockup.controller('GlobalController', function($scope, $location, $timeout,
 		$timeout(function() {
 			$scope.extras.processing_directory = null;
 		}, 2000);
+	};
+
+	$scope.getBackgroundProcessesStatus = function() {
+		remoteService.callMethod('get_background_process_status').success(
+				function(data) {
+					$scope.extras.background_process_status = data.ret.message;
+				}).error(function(data) {
+			$scope.extras.background_process_status = "Couldn't get status.";
+		});
+
 	};
 
 	$scope.isCurrentPath = function(path) {

@@ -2,7 +2,9 @@
 
     <div>
         <input type="text" ng-model="extras.directory">
-        <button type="button" ng-click="checkDirectory()" class="btn btn-primary">Refresh</button>
+        <button type="button" ng-click="checkDirectory()" class="btn btn-primary btn-xs">Refresh</button>
+        <button type="button" ng-click="getBackgroundProcessesStatus()" class="btn btn-primary btn-xs">Check
+            background processes</button>
     </div>
 
     <div class="well well-sm" style="margin-top: 1em;">
@@ -20,6 +22,8 @@
         <a href="javascript:void(0);"><i class="icon-spinner icon-spin icon-large"></i> Processing directory <span
             ng-bind="extras.processing_directory"></span></a>
     </div>
+
+    <div ng-show="extras.background_process_status">{{extras.background_process_status}}</div>
 
     <table ng-show="extras.directories" class="table table-condensed" style="margin-top: 1em;">
         <tr>
