@@ -6,3 +6,6 @@
 /tests/dir3/.frockup.db
 /tests/dir3/file2.txt
 /.settings
+/tests/dir1/.frockup.gdbm
+/tests/dir2/.frockup.gdbm
+/tests/dir3/.frockup.gdbm
