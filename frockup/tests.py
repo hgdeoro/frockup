@@ -80,7 +80,7 @@ class BaseTest(unittest.TestCase):
         db.close()
         return copy
 
-    def test_dir1(self):
+    def test_01_metadata_crated_when_doesnt_exists(self):
         """Tests that metadata is created when don't exists"""
         dir1 = self._get_test_subdir('dir1')
         # Remove DB if exists (of previous run of the tests)
@@ -102,7 +102,7 @@ class BaseTest(unittest.TestCase):
             database[filename]['stats.st_size']
             database[filename]['stats.st_mtime']
 
-    def test_dir2(self):
+    def test_02_comparison_works_with_existing_metadata(self):
         """Tests that metadata is compared sucesfully when no change exists in files,
         and no file should be uploaded"""
         dir2 = self._get_test_subdir('dir2')
@@ -125,7 +125,7 @@ class BaseTest(unittest.TestCase):
             self.assertDictEqual(database[filename],
                 created_metadata[filename])
 
-    def test_dir3(self):
+    def test_03_metadata_is_updated_and_files_changes_are_detected(self):
         """Tests metadata updates"""
         dir3 = self._get_test_subdir('dir3')
         # Remove files
@@ -142,7 +142,7 @@ class BaseTest(unittest.TestCase):
         main.close()
         # Check statistics
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
-        self.assertEqual(main.ctx.included_count, 1) # file1.txt
+        self.assertEqual(main.ctx.included_count, 1)  # file1.txt
         self.assertEqual(main.ctx.excluded_count, 0)
 
         # --- Call process_directory() ---
@@ -153,7 +153,7 @@ class BaseTest(unittest.TestCase):
             # Check statistics
             logging.debug("Log: %s", pprint.pformat(main.ctx.log))
             self.assertEqual(main.ctx.included_count, 0)
-            self.assertEqual(main.ctx.excluded_count, 2) # .frockup.db + file1.txt
+            self.assertEqual(main.ctx.excluded_count, 2)  # .frockup.db + file1.txt
 
         # --- Add `file2.txt`
         file2_path = os.path.join(dir3, 'file2.txt')
@@ -165,8 +165,8 @@ class BaseTest(unittest.TestCase):
         main.close()
         # Check statistics
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
-        self.assertEqual(main.ctx.included_count, 1) # file2.txt
-        self.assertEqual(main.ctx.excluded_count, 2) # .frockup.db + file1.txt
+        self.assertEqual(main.ctx.included_count, 1)  # file2.txt
+        self.assertEqual(main.ctx.excluded_count, 2)  # .frockup.db + file1.txt
 
         # --- Call process_directory() ---
         main = Main(glacier=GlacierMock)
@@ -175,7 +175,7 @@ class BaseTest(unittest.TestCase):
         # Check statistics
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
         self.assertEqual(main.ctx.included_count, 0)
-        self.assertEqual(main.ctx.excluded_count, 3) # .frockup.db + file1.txt + file2.txt
+        self.assertEqual(main.ctx.excluded_count, 3)  # .frockup.db + file1.txt + file2.txt
 
         # --- Touch `file2.txt`
         os.utime(file2_path, (1, 1))
@@ -186,8 +186,8 @@ class BaseTest(unittest.TestCase):
         main.close()
         # Check statistics
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
-        self.assertEqual(main.ctx.included_count, 1) # file2.txt
-        self.assertEqual(main.ctx.excluded_count, 2) # .frockup.db + file1.txt
+        self.assertEqual(main.ctx.included_count, 1)  # file2.txt
+        self.assertEqual(main.ctx.excluded_count, 2)  # .frockup.db + file1.txt
 
         # Check `old_archive_ids`
         db = self._get_db_copy(dir3)
@@ -201,7 +201,7 @@ class BaseTest(unittest.TestCase):
         # Check statistics
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
         self.assertEqual(main.ctx.included_count, 0)
-        self.assertEqual(main.ctx.excluded_count, 3) # .frockup.db + file1.txt + file2.txt
+        self.assertEqual(main.ctx.excluded_count, 3)  # .frockup.db + file1.txt + file2.txt
 
         # Check `old_archive_ids`
         db = self._get_db_copy(dir3)
@@ -218,8 +218,8 @@ class BaseTest(unittest.TestCase):
         main.close()
         # Check statistics
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
-        self.assertEqual(main.ctx.included_count, 1) # file2.txt
-        self.assertEqual(main.ctx.excluded_count, 2) # .frockup.db + file1.txt
+        self.assertEqual(main.ctx.included_count, 1)  # file2.txt
+        self.assertEqual(main.ctx.excluded_count, 2)  # .frockup.db + file1.txt
 
         # Check `old_archive_ids`
         db = self._get_db_copy(dir3)
@@ -233,7 +233,7 @@ class BaseTest(unittest.TestCase):
         # Check statistics
         logging.debug("Log: %s", pprint.pformat(main.ctx.log))
         self.assertEqual(main.ctx.included_count, 0)
-        self.assertEqual(main.ctx.excluded_count, 3) # .frockup.db + file1.txt + file2.txt
+        self.assertEqual(main.ctx.excluded_count, 3)  # .frockup.db + file1.txt + file2.txt
 
         # Check `old_archive_ids`
         db = self._get_db_copy(dir3)
