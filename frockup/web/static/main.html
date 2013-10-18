@@ -12,16 +12,21 @@
         <button type="button" ng-click="resetLocalHistoryDirs()" class="btn btn-danger btn-xs">Reset</button>
     </div>
 
+    <div class="well well-sm" style="margin-top: 1em;">
+        Config: <label><input type="checkbox" ng-model="extras.show_completed">&nbsp;Show completed</label>
+    </div>
+
     <table ng-show="extras.directories" class="table table-condensed" style="margin-top: 1em;">
         <tr>
-            <th width="1%">&nbsp;</th>
+            <th width="1%"><i class="glyphicon glyphicon-check"></i></th>
             <th width="60%">Directory</th>
             <th width="10%" class="r">Files</th>
             <th width="10%" class="r">Ignored</th>
             <th width="10%" class="r">Uploaded</th>
             <th width="10%" class="r">Pending</th>
         </tr>
-        <tr ng-repeat="a_dir in extras.directories" ng-class="{ success: ! a_dir.pending_count}">
+        <tr ng-show="extras.show_completed || a_dir.pending_count" ng-repeat="a_dir in extras.directories"
+            ng-class="{ success: ! a_dir.pending_count}">
             <td>
                 <span ng-show="! a_dir.pending_count"><i class="glyphicon glyphicon-check"></i></span>
             </td>

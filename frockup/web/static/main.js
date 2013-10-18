@@ -48,6 +48,7 @@ frockup.controller('GlobalController', function($scope, $location,
 		directory : '',
 		spinner : false,
 		directories : [],
+		show_completed : true,
 	};
 
 	$scope.addDirToLocalHistory = function(directory) {
