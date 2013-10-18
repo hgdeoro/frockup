@@ -72,7 +72,7 @@ class LocalMetadata():
         else:
             if self.last_directory != directory:
                 # close the old DB
-                assert self.database
+                assert self.database is not None
                 self.database.close()
                 self.database = None
                 self.last_directory = None
