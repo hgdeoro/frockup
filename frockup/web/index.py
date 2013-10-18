@@ -1,14 +1,28 @@
-from flask import Flask, jsonify, request, json
 import traceback
 import logging
 import os
 import random
+
+from flask import Flask, jsonify, request, json
+
+from frockup.file_filter import FileFilter
+from frockup.common import Context
+from frockup.main import _should_process_file
+from frockup.local_metadata import LocalMetadata
 
 app = Flask(__name__)
 app.debug = True
 
 
 class Remote(object):
+
+    def __init__(self):
+        self.ctx = Context()
+        self.ctx.set_include_extensions(('jpg',))
+
+        self.file_filter = FileFilter(self.ctx)
+
+        self.local_metadata = LocalMetadata(self.ctx)
 
     def load_directory(self, function_args):
         base_dir = function_args[0]
@@ -17,13 +31,25 @@ class Remote(object):
         directories = []
         files = {}
         for root, _, files in os.walk(base_dir):
+            self.local_metadata._opendb(root)
+            file_list = []
+            ignored_count = 0
+            updated_count = 0
+            pending_count = 0
+            for a_file in files:
+                should_proc, _ = _should_process_file(root, a_file, self.file_filter,
+                                                      self.local_metadata, self.ctx)
+                if should_proc:
+                    pending_count += 1
+
             directory = {
                 'name': root,
                 'files': files,
                 'files_count': len(files),
-                'ignored_count': random.randint(4, 15),
-                'updated_count': random.randint(4, 15),
-                'pending_count': random.randint(0, 10),
+                'file_list': file_list,
+                'ignored_count': ignored_count,
+                'updated_count': updated_count,
+                'pending_count': pending_count,
             }
             directories.append(directory)
 
