@@ -44,6 +44,8 @@ class Glacier():
     def upload_file(self, directory, filename):
         """Uploads a file to glacier. Returns an instance of GlacierData"""
         logger.debug("Uploading file '%s/%s'", directory, filename)
+        if self.ctx.dry_run:
+            return
         from boto.glacier.layer2 import Layer2
         self.layer2 = Layer2(
             self.ctx.config.get("identity", "aws_access_key_id"),

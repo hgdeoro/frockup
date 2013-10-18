@@ -117,6 +117,9 @@ class LocalMetadata():
     def update_metadata(self, directory, filename, file_stats, glacier_data):
         """Update the local metadata with the data returned by glacier"""
         logger.debug("Updating metadata for file '%s/%s'", directory, filename)
+        if self.ctx.dry_run:
+            return
+
         assert isinstance(glacier_data, GlacierData)
         assert isinstance(file_stats, FileStats)
         self._opendb(directory)

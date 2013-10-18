@@ -36,6 +36,7 @@ class Context(dict):
         self.include_extensions = []
         self.exclude_extensions = []
         self.config = config or get_config()
+        self.dry_run = False
 
     def add_log(self, directory, filename, **kwargs):
         self.log[directory] = self.log.get(directory, dict())

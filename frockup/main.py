@@ -85,7 +85,8 @@ class Main():
         try:
             logger.info("Starting upload of file '%s'...", filename)
             start_time = time.time()
-            glacier_data = self.glacier.upload_file(directory, filename)
+            if not self.ctx.dry_run:
+                glacier_data = self.glacier.upload_file(directory, filename)
             end_time = time.time()
             logger.info(" + upload complete! Took %s secs, %s kbps", end_time - start_time,
                 (file_stats.stats.st_size / (end_time - start_time)) / 1024.0)
@@ -97,7 +98,8 @@ class Main():
         if error:
             self.ctx.add_error(directory, filename, 'upload_error', error)
         else:
-            self.local_metadata.update_metadata(directory, filename, file_stats, glacier_data)
+            if not self.ctx.dry_run:
+                self.local_metadata.update_metadata(directory, filename, file_stats, glacier_data)
 
     def close(self):
         self.local_metadata.close()
@@ -116,6 +118,8 @@ def main():
         help="File extensions to exclude, separated by commas (ej: avi,AVI,mov,MOV,xcf,XCF)")
     parser.add_argument('--one-file', dest='one_file',
         help="To upload only one file, if needed")
+    parser.add_argument('--dry-run', dest='dry_run', action='store_true',
+        help="Simulate process and report, without uploading anything")
     parser.add_argument('directory', nargs='+', metavar='DIRECTORY',
         help="Directory to backup")
 
@@ -136,6 +140,9 @@ def main():
         ctx.set_include_extensions(args.include.split(','))
     elif args.exclude:
         ctx.set_exclude_extensions(args.exclude.split(','))
+
+    if args.dry_run:
+        ctx.dry_run = True
 
     if 'FROKUP_FTP_MODE' in os.environ:
         main = Main(ctx=ctx, glacier=GlacierFtpBased)
