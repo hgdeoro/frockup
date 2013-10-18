@@ -1,0 +1,71 @@
+<!doctype html>
+<html ng-app='Frockup'>
+<head>
+
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<!-- Latest compiled and minified CSS -->
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap.min.css">
+
+<!-- Optional theme -->
+<link rel="stylesheet" href="//netdna.bootstrapcdn.com/bootstrap/3.0.0/css/bootstrap-theme.min.css">
+
+<!-- Font Awesome -->
+<link href="//netdna.bootstrapcdn.com/font-awesome/3.2.1/css/font-awesome.css" rel="stylesheet">
+
+<script src="//code.jquery.com/jquery.js"></script>
+
+<!-- Latest compiled and minified JavaScript -->
+<script src="//netdna.bootstrapcdn.com/bootstrap/3.0.0/js/bootstrap.min.js"></script>
+
+<script src="https://ajax.googleapis.com/ajax/libs/angularjs/1.0.8/angular.min.js"></script>
+
+<script src="/static/ui-bootstrap-tpls-0.6.0.min.js"></script>
+
+<script src="/static/main.js"></script>
+
+<style type="text/css">
+</style>
+
+</head>
+<body ng-controller="GlobalController">
+
+    <!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top">
+        <div class="container">
+            <div class="navbar-header">
+                <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+                    <span class="icon-bar"></span> <span class="icon-bar"></span> <span class="icon-bar"></span>
+                </button>
+                <a class="navbar-brand" href="javascript:void(0);">Frockup</a>
+            </div>
+            <div class="navbar-collapse collapse">
+                <ul class="nav navbar-nav">
+                    <li ng-class="{ active: isCurrentPath('/') }"><a href="#/">Home</a></li>
+                    <!-- <li ng-class="{ active: isCurrentPath('/config') }"><a href="#/config">Config</a></li> -->
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                    <!-- <li><a href="http://www.data-tsunami.com" target="_blank"><img
+							alt="Powered by Data-Tsunami.com"
+							src="/static/powered-by-data-tsunami-94x36.png"></a></li> -->
+                </ul>
+            </div>
+            <!--/.nav-collapse -->
+        </div>
+    </div>
+
+    <div class="container" style="padding-top: 70px;">
+
+        <div ng-repeat="error_msg in extras.errors" class="alert alert-danger alert-dismissable">
+            <button type="button" class="close" data-dismiss="alert">&times;</button>
+            {{error_msg}}
+        </div>
+
+        <div ng-view></div>
+
+    </div>
+    <!-- /container -->
+
+</body>
+</html>
