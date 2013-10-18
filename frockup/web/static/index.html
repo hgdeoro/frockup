@@ -44,6 +44,9 @@
                 <ul class="nav navbar-nav">
                     <li ng-class="{ active: isCurrentPath('/') }"><a href="#/">Home</a></li>
                     <!-- <li ng-class="{ active: isCurrentPath('/config') }"><a href="#/config">Config</a></li> -->
+                    <li ng-show="extras.spinner"><a href="javascript:void(0);"><i
+                            class="icon-spinner icon-spin icon-large"></i> Processing...</a></li>
+
                 </ul>
                 <ul class="nav navbar-nav navbar-right">
                     <!-- <li><a href="http://www.data-tsunami.com" target="_blank"><img

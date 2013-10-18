@@ -41,7 +41,27 @@ frockup.factory('remoteService', function($http) {
 	return remoteService;
 });
 
-frockup.controller('GlobalController', function($scope, $location) {
+frockup.controller('GlobalController', function($scope, $location,
+		remoteService) {
+
+	$scope.extras = {
+		directory : '',
+		spinner : false,
+	};
+
+	$scope.checkDirectory = function() {
+
+		$scope.safeApply(function() {
+			$scope.extras.spinner = true;
+		});
+
+		remoteService.callMethod('load_directory', $scope.extras.directory)
+				.success(function(data) {
+					$scope.extras.spinner = false;
+				}).error(function(data) {
+					$scope.extras.spinner = false;
+				});
+	};
 
 	$scope.isCurrentPath = function(path) {
 		return $location.path() == path;
