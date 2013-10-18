@@ -15,7 +15,7 @@ def main():
     assert not os.path.exists(outfile)
 
     origdb = shelve.open(infile)
-    newdb = gdbm.open(outfile, 'n')
+    newdb = gdbm.open(outfile, 'c')
 
     for key, value in origdb.iteritems():
         print " - Converting:", key
