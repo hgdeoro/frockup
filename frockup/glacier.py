@@ -63,7 +63,8 @@ class Glacier():
             try:
                 self.layer2.close()
             except:
-                logger.warn("Exception detected when trying to close(), will ignore it...")
+                logger.exception("Exception detected when trying to close(), "
+                                 "will log and ignore it...")
             finally:
                 self.layer2 = None
 
