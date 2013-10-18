@@ -1,2 +1,9 @@
 boto==2.9.2
 pyftpdlib==1.2.0
+uWSGI==1.9.18.2
+Flask==0.10.1
+# Deps for flask
+Jinja2==2.7.1
+MarkupSafe==0.18
+Werkzeug==0.9.4
+itsdangerous==0.23
