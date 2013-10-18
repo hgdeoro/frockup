@@ -6,18 +6,18 @@
 
     <table ng-show="extras.directories" class="table" style="margin-top: 1em;">
         <tr>
-            <th>Directory</th>
-            <th>Files</th>
-            <th>Ignored</th>
-            <th>Uploaded</th>
-            <th>Pending</th>
+            <th width="60%">Directory</th>
+            <th width="10%" class="r">Files</th>
+            <th width="10%" class="r">Ignored</th>
+            <th width="10%" class="r">Uploaded</th>
+            <th width="10%" class="r">Pending</th>
         </tr>
         <tr ng-repeat="a_dir in extras.directories">
-            <td>{{ a_dir }}</td>
-            <td>55</td>
-            <td>55</td>
-            <td>55</td>
-            <td>55</td>
+            <td>{{ a_dir.name }}</td>
+            <td class="r">{{ a_dir.files_count }}</td>
+            <td class="r">55</td>
+            <td class="r">55</td>
+            <td class="r">55</td>
         </tr>
     </table>
 

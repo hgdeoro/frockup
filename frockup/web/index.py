@@ -13,7 +13,17 @@ class Remote(object):
         base_dir = function_args[0]
         assert os.path.exists(base_dir)
 
-        return {'directories': [x[0] for x in os.walk(base_dir)]}
+        directories = []
+        files = {}
+        for root, _, files in os.walk(base_dir):
+            directory = {
+                'name': root,
+                'files': files,
+                'files_count': len(files),
+            }
+            directories.append(directory)
+
+        return {'directories': directories}
 
 
 remote = Remote()
