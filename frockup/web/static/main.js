@@ -59,7 +59,7 @@ frockup.controller('GlobalController', function($scope, $location,
 		remoteService.callMethod('load_directory', $scope.extras.directory)
 				.success(function(data) {
 					$scope.extras.spinner = false;
-					$scope.extras.directories = data.directories;
+					$scope.extras.directories = data.ret.directories;
 				}).error(function(data) {
 					$scope.extras.spinner = false;
 					$scope.extras.directories = [];
