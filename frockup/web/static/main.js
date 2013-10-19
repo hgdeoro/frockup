@@ -1,4 +1,4 @@
-var frockup = angular.module('Frockup', []);
+var frockup = angular.module('Frockup', [ 'ngRoute' ]);
 
 frockup.config(function($routeProvider) {
 
