@@ -1,59 +1,61 @@
 <div ng-init="">
 
-    <div>
-        <input type="text" ng-model="extras.directory">
-        <button type="button" ng-click="checkDirectory()" class="btn btn-primary btn-xs">Refresh</button>
-        <button type="button" ng-click="getBackgroundProcessesStatus()" class="btn btn-primary btn-xs">Check
-            background processes</button>
-    </div>
+	<div>
+		<input type="text" ng-model="extras.directory">
+		<button type="button" ng-click="checkDirectory()"
+			class="btn btn-primary btn-xs">Refresh</button>
+		<button type="button" ng-click="getBackgroundProcessesStatus()"
+			class="btn btn-primary btn-xs">Check background processes</button>
+		<label><input type="checkbox" ng-model="extras.show_completed">&nbsp;Show
+			completed</label>
+	</div>
 
-    <div class="well well-sm" style="margin-top: 1em;">
-        History: <span ng-repeat="a_dir in getLocalHistoryDirs()">
-            <button type="button" ng-click="extras.directory = a_dir ; checkDirectory()" class="btn btn-primary btn-xs">{{a_dir}}</button>
-        </span>
-        <button type="button" ng-click="resetLocalHistoryDirs()" class="btn btn-danger btn-xs">Reset</button>
-    </div>
+	<div class="well well-sm" style="margin-top: 1em;">
+		History: <span ng-repeat="a_dir in getLocalHistoryDirs()">
+			<button type="button"
+				ng-click="extras.directory = a_dir ; checkDirectory()"
+				class="btn btn-primary btn-xs">{{a_dir}}</button>
+		</span>
+		<button type="button" ng-click="resetLocalHistoryDirs()"
+			class="btn btn-danger btn-xs">Reset</button>
+	</div>
 
-    <div class="well well-sm" style="margin-top: 1em;">
-        Config: <label><input type="checkbox" ng-model="extras.show_completed">&nbsp;Show completed</label>
-    </div>
+	<div ng-show="extras.processing_directory">
+		<a href="javascript:void(0);"><i
+			class="icon-spinner icon-spin icon-large"></i> Processing directory <span
+			ng-bind="extras.processing_directory"></span></a>
+	</div>
 
-    <div ng-show="extras.processing_directory">
-        <a href="javascript:void(0);"><i class="icon-spinner icon-spin icon-large"></i> Processing directory <span
-            ng-bind="extras.processing_directory"></span></a>
-    </div>
 
-    <div ng-show="extras.background_process_status">{{extras.background_process_status}}</div>
+	<table ng-show="extras.directories" class="table table-condensed"
+		style="margin-top: 1em;">
+		<tr>
+			<th width="1%"><i class="glyphicon glyphicon-check"></i></th>
+			<th width="60%">Directory</th>
+			<th width="10%" class="r">Files</th>
+			<th width="10%" class="r">Ignored</th>
+			<th width="10%" class="r">Uploaded</th>
+			<th width="10%" class="r">Pending</th>
+		</tr>
+		<tr ng-show="extras.show_completed || a_dir.pending_count"
+			ng-repeat="a_dir in extras.directories"
+			ng-class="{ success: ! a_dir.pending_count}">
+			<td><span ng-show="! a_dir.pending_count"><i
+					class="glyphicon glyphicon-check"></i></span></td>
+			<td>
+				<div style="float: left;">{{ a_dir.name }}</div>
+				<div style="float: right;">
+					<button ng-show="a_dir.pending_count"
+						ng-click="syncDirectory(a_dir.name)"
+						class="btn btn-primary btn-xs">Sync</button>
+				</div>
 
-    <table ng-show="extras.directories" class="table table-condensed" style="margin-top: 1em;">
-        <tr>
-            <th width="1%">
-                <i class="glyphicon glyphicon-check"></i>
-            </th>
-            <th width="60%">Directory</th>
-            <th width="10%" class="r">Files</th>
-            <th width="10%" class="r">Ignored</th>
-            <th width="10%" class="r">Uploaded</th>
-            <th width="10%" class="r">Pending</th>
-        </tr>
-        <tr ng-show="extras.show_completed || a_dir.pending_count" ng-repeat="a_dir in extras.directories"
-            ng-class="{ success: ! a_dir.pending_count}">
-            <td>
-                <span ng-show="! a_dir.pending_count"><i class="glyphicon glyphicon-check"></i></span>
-            </td>
-            <td>
-                <div style="float: left;">{{ a_dir.name }}</div>
-                <div style="float: right;">
-                    <button ng-show="a_dir.pending_count" ng-click="syncDirectory(a_dir.name)"
-                        class="btn btn-primary btn-xs">Sync</button>
-                </div>
-
-            </td>
-            <td class="r">{{ a_dir.files_count }}</td>
-            <td class="r">{{ a_dir.ignored_count }}</td>
-            <td class="r">{{ a_dir.updated_count }}</td>
-            <td class="r">{{ a_dir.pending_count }}</td>
-        </tr>
-    </table>
+			</td>
+			<td class="r">{{ a_dir.files_count }}</td>
+			<td class="r">{{ a_dir.ignored_count }}</td>
+			<td class="r">{{ a_dir.updated_count }}</td>
+			<td class="r">{{ a_dir.pending_count }}</td>
+		</tr>
+	</table>
 
 </div>

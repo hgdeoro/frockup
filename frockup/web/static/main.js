@@ -41,15 +41,16 @@ frockup.factory('remoteService', function($http) {
     return remoteService;
 });
 
-frockup.controller('GlobalController', function($scope, $location, $timeout, remoteService) {
+frockup.controller('GlobalController', function($scope, $location, $timeout, $interval, remoteService) {
 
+   
     $scope.extras = {
         directory : '',
         spinner : false,
         directories : [],
         show_completed : true,
         processing_directory : null,
-        background_process_status : null,
+        background_process_status : 'Not checked yet',
     };
 
     $scope.addDirToLocalHistory = function(directory) {
@@ -133,6 +134,10 @@ frockup.controller('GlobalController', function($scope, $location, $timeout, rem
             this.$apply(fn);
         }
     };
+
+    $scope.intervalCheckBackgroundProcesses = $interval(function() {
+        $scope.getBackgroundProcessesStatus();
+    }, 1000);
 
 });
 
