@@ -46,14 +46,14 @@ def _should_process_file(directory, filename, file_filter, local_metadata, ctx):
 
     if not file_filter.include_file(directory, filename):
         ctx.add_excluded(directory, filename, EXCLUDED_BY_FILE_FILTER)
-        logger.info("Ignoring file %s (excluded by filter)", filename)
+        logger.debug("Ignoring file %s (excluded by filter)", filename)
         return (False, None)
 
     file_stats = local_metadata.include_file(directory, filename)
     assert isinstance(file_stats, (FileStats, bool))
     if file_stats is False:
         ctx.add_excluded(directory, filename, EXCLUDED_BY_LOCAL_METADATA)
-        logger.info("Ignoring file %s (excluded by metadata)", filename)
+        logger.debug("Ignoring file %s (excluded by metadata)", filename)
         return (False, file_stats)
 
     ctx.add_included(directory, filename)
