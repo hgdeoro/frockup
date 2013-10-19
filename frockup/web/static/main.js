@@ -43,7 +43,6 @@ frockup.factory('remoteService', function($http) {
 
 frockup.controller('GlobalController', function($scope, $location, $timeout, $interval, remoteService) {
 
-   
     $scope.extras = {
         directory : '',
         spinner : false,
@@ -96,9 +95,6 @@ frockup.controller('GlobalController', function($scope, $location, $timeout, $in
     };
 
     $scope.syncDirectory = function(directory) {
-        $scope.safeApply(function() {
-            $scope.extras.processing_directory = directory;
-        });
 
         remoteService.callMethod('launch_process').success(function(data) {
             console.info("launch_process() OK");
@@ -106,9 +102,6 @@ frockup.controller('GlobalController', function($scope, $location, $timeout, $in
             console.warn("launch_process() ERROR");
         });
 
-        $timeout(function() {
-            $scope.extras.processing_directory = null;
-        }, 1000);
     };
 
     $scope.getBackgroundProcessesStatus = function() {
