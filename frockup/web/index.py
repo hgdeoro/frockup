@@ -8,12 +8,13 @@ from frockup.file_filter import FileFilter
 from frockup.common import Context
 from frockup.main import _should_process_file
 from frockup.local_metadata import LocalMetadata
-from frockup.web.background import ACTION_GET_STATUS, start, ACTION_LAUNCH
+from frockup.web.background import ACTION_GET_STATUS, ACTION_LAUNCH, \
+    ProcessController
 
 app = Flask(__name__)
 app.debug = True
 
-parent_conn = None
+PROCESS_CONTROLLER = ProcessController()
 
 
 class Remote(object):
@@ -21,19 +22,18 @@ class Remote(object):
     def __init__(self):
         self.ctx = Context()
         self.ctx.set_include_extensions(('jpg',))
-
         self.file_filter = FileFilter(self.ctx)
-
         self.local_metadata = LocalMetadata(self.ctx)
+        self.logger = logging.getLogger('Remote')
 
     def get_background_process_status(self, function_args):
-        parent_conn.send({'action': ACTION_GET_STATUS})
-        data = parent_conn.recv()
+        data = PROCESS_CONTROLLER.send_msg({'action': ACTION_GET_STATUS})
         return {'message': data}
 
     def launch_process(self, function_args):
-        parent_conn.send({'action': ACTION_LAUNCH, 'directory': 'd', 'filename': 'f'})
-        data = parent_conn.recv()
+        self.logger.info("launch_process() - %s", function_args)
+        data = PROCESS_CONTROLLER.send_msg({'action': ACTION_LAUNCH,
+            'directory': 'd', 'filename': 'f'})
         return data
 
     def load_directory(self, function_args):
@@ -105,6 +105,15 @@ def callMethod():
 
 
 if __name__ == '__main__':
-    logging.basicConfig(level=logging.INFO)
-    parent_conn = start()
+    #    ch = logging.StreamHandler()
+    #    ch.setLevel(logging.INFO)
+    #    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+    #    ch.setFormatter(formatter)
+    #    logging.root.addHandler(ch)
+    logging.root.setLevel(logging.INFO)
+    for h in logging.root.handlers:
+        if isinstance(h, logging.StreamHandler):
+            h.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(name)s - %(message)s'))
+    logging.info("Starting...")
+    PROCESS_CONTROLLER.start()
     app.run()
