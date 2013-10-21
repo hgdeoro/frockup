@@ -58,6 +58,7 @@ frockup.controller('GlobalController', function($scope, $location, $timeout, $in
     /*
      * Alerts
      */
+
     $scope.closeAlert = function(index) {
         $scope.extras.alerts.splice(index, 1);
     };
@@ -91,8 +92,9 @@ frockup.controller('GlobalController', function($scope, $location, $timeout, $in
     };
 
     /*
-     * 
+     * Remember base directories to backup
      */
+
     $scope.addDirToLocalHistory = function(directory) {
         var frockupDirHistory = localStorage.getItem('frockupDirHistory');
         if (frockupDirHistory == null) {
@@ -118,6 +120,10 @@ frockup.controller('GlobalController', function($scope, $location, $timeout, $in
         localStorage.removeItem('frockupDirHistory');
     };
 
+    /*
+     * checkDirectory()
+     */
+
     $scope.checkDirectory = function() {
 
         $scope.safeApply(function() {
@@ -135,6 +141,10 @@ frockup.controller('GlobalController', function($scope, $location, $timeout, $in
         });
     };
 
+    /*
+     * syncDirectory()
+     */
+
     $scope.syncDirectory = function(directory) {
         remoteService.callMethod('launch_backup', directory.name).success(function(data) {
             console.info("launch_backup() OK");
@@ -151,6 +161,10 @@ frockup.controller('GlobalController', function($scope, $location, $timeout, $in
         });
 
     };
+
+    /*
+     * BackgroundProcessesStatus
+     */
 
     $scope.getBackgroundProcessesStatus = function() {
         remoteService.callMethod('get_background_process_status').success(function(data) {
@@ -170,6 +184,24 @@ frockup.controller('GlobalController', function($scope, $location, $timeout, $in
 
     };
 
+    $scope.startBackgroundProcessesStatus = function() {
+        if ($scope.extras.intervalCheckBackgroundProcesses)
+            return;
+        $scope.extras.intervalCheckBackgroundProcesses = $interval(function() {
+            $scope.getBackgroundProcessesStatus();
+        }, 1000);
+    };
+
+    $scope.stopBackgroundProcessesStatus = function() {
+        console.info("stopBackgroundProcessesStatus()");
+        $interval.cancel($scope.extras.intervalCheckBackgroundProcesses);
+        $scope.extras.intervalCheckBackgroundProcesses = null;
+    };
+
+    /*
+     * Utility methods
+     */
+
     $scope.isCurrentPath = function(path) {
         return $location.path() == path;
     };
@@ -183,28 +215,6 @@ frockup.controller('GlobalController', function($scope, $location, $timeout, $in
         } else {
             this.$apply(fn);
         }
-    };
-
-    /*
-     * BackgroundProcessesStatus
-     */
-
-    $scope.extras.intervalCheckBackgroundProcesses = $interval(function() {
-        $scope.getBackgroundProcessesStatus();
-    }, 1000);
-
-    $scope.startBackgroundProcessesStatus = function() {
-        if ($scope.extras.intervalCheckBackgroundProcesses)
-            return;
-        $scope.extras.intervalCheckBackgroundProcesses = $interval(function() {
-            $scope.getBackgroundProcessesStatus();
-        }, 1000);
-    };
-
-    $scope.stopBackgroundProcessesStatus = function() {
-        console.info("stopBackgroundProcessesStatus()");
-        $interval.cancel($scope.extras.intervalCheckBackgroundProcesses);
-        $scope.extras.intervalCheckBackgroundProcesses = null;
     };
 
 });
