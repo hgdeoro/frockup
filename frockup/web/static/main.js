@@ -52,6 +52,7 @@ frockup.controller('GlobalController', function($scope, $location, $timeout, $in
         background_process_status : 'Not checked yet',
         extended_status : null,
         alerts : [],
+        intervalCheckBackgroundProcesses : null,
     };
 
     /*
@@ -184,9 +185,27 @@ frockup.controller('GlobalController', function($scope, $location, $timeout, $in
         }
     };
 
-    $scope.intervalCheckBackgroundProcesses = $interval(function() {
+    /*
+     * BackgroundProcessesStatus
+     */
+
+    $scope.extras.intervalCheckBackgroundProcesses = $interval(function() {
         $scope.getBackgroundProcessesStatus();
     }, 1000);
+
+    $scope.startBackgroundProcessesStatus = function() {
+        if ($scope.extras.intervalCheckBackgroundProcesses)
+            return;
+        $scope.extras.intervalCheckBackgroundProcesses = $interval(function() {
+            $scope.getBackgroundProcessesStatus();
+        }, 1000);
+    };
+
+    $scope.stopBackgroundProcessesStatus = function() {
+        console.info("stopBackgroundProcessesStatus()");
+        $interval.cancel($scope.extras.intervalCheckBackgroundProcesses);
+        $scope.extras.intervalCheckBackgroundProcesses = null;
+    };
 
 });
 
