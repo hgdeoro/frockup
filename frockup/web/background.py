@@ -3,9 +3,9 @@ import logging
 from multiprocessing import Process, Pipe
 import os
 
-
+# Messages
 LAUNCH_BACKUP = 'launch'
-ACTION_GET_STATUS = 'get_status'
+GET_STATUS = 'get_status'
 
 PROCESS_STARTED = 'STARTED'
 PROCESS_FINISH_OK = 'FINISH_OK'
@@ -15,14 +15,10 @@ PROCESS_FINISH_WITH_ERROR = 'FINISH_WITH_ERROR'
 class ProcessController(object):
 
     def __init__(self):
-        # Connection used to send commands to controller
-        self.parent_conn = None
         # The controller, who launch and manitains hanlders processes
         self.process_controller = None
-        # The child processes launched for handling the requested actions
-        self.background_processes_in_child = []
-        # List of finished processes pending to be informed
-        self.finished_background_process = []
+        # Connection used to send commands to controller
+        self.parent_conn = None
 
     def start(self):
         """
@@ -39,7 +35,7 @@ class ProcessController(object):
         Get data about running process
         This method is invoked in the WEB tier.
         """
-        data = self.send_msg({'action': ACTION_GET_STATUS})
+        data = self.send_msg({'action': GET_STATUS})
         return data
 
     def launch_backup(self, directory_name):
@@ -76,22 +72,27 @@ class ProcessController(object):
         """
         logging.info("loop()")
 
+        background_processes_in_child = []
+        finished_background_process = []
         try:
             while True:
                 poll_ok = child_conn.poll(2)
                 if poll_ok:
                     data = child_conn.recv()
                     try:
-                        ret = self._handle_message(data)
+                        ret = self._handle_message(background_processes_in_child, data)
                         child_conn.send(ret)
                     except:
                         logging.exception("Exception detected when handling request")
                         child_conn.send('action_returned_error')
-                self._handle_cleanup()
+                self._handle_cleanup(background_processes_in_child, finished_background_process)
         except:
             logging.exception("Exception detected in main loop of subprocess_handler()")
 
-    def _handle_message(self, data):
+    def _handle_message(self, background_processes_in_child, data):
+        """
+        Handles a message.
+        """
         logging.info("_handle_message(): {}".format(data))
 
         if data['action'] == LAUNCH_BACKUP:
@@ -99,7 +100,7 @@ class ProcessController(object):
             new_process = Process(target=action_upload_file, args=(_child_conn,
                 data['directory']))
             new_process.start()
-            self.background_processes_in_child.append({
+            background_processes_in_child.append({
                                        'p': new_process,
                                        'child_conn': _child_conn,
                                        'parent_conn': _parent_conn,
@@ -107,19 +108,19 @@ class ProcessController(object):
                                        })
             return 'launched'
 
-        if data['action'] == ACTION_GET_STATUS:
-            return '{} process running'.format(len(self.background_processes_in_child))
+        if data['action'] == GET_STATUS:
+            return '{} process running'.format(len(background_processes_in_child))
 
         return 'action_unknown'
 
-    def _handle_cleanup(self):
+    def _handle_cleanup(self, background_processes_in_child, finished_background_process):
         logging.debug("_handle_cleanup()")
-        for a_process in self.background_processes_in_child:
+        for a_process in background_processes_in_child:
             if a_process['parent_conn'].poll():
                 a_process['status'] = a_process['parent_conn'].recv()
             if not a_process['p'].is_alive():
-                self.finished_background_process.append(
-                    self.background_processes_in_child.remove(a_process))
+                finished_background_process.append(
+                    background_processes_in_child.remove(a_process))
 
 
 #===============================================================================
