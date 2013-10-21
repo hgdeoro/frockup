@@ -227,7 +227,7 @@ class ProcessController(object):
 # Actions are the thins that should be done in subprocess and monitor upon completion
 #===============================================================================
 
-DRY_RUN = True
+DRY_RUN = False
 
 
 def action_upload_directory(_child_conn, directory):
@@ -246,6 +246,7 @@ def action_upload_directory(_child_conn, directory):
         glacier = Glacier(ctx)
 
         file_list_to_proc = []
+        bytes_to_backup = 0
         for a_file in os.listdir(directory):
             if not os.path.isfile(os.path.join(directory, a_file)):
                 continue
@@ -254,10 +255,12 @@ def action_upload_directory(_child_conn, directory):
             if should_proc:
                 logger.info("INCLUDING %s/%s", directory, a_file)
                 file_list_to_proc.append((a_file, file_stats))
+                bytes_to_backup += file_stats.stats.st_size
             else:
                 logger.info("EXCLUDING %s/%s", directory, a_file)
 
-        msg_template = "Uploading file {}/{} ({} of {})"
+        bytes_uploaded = 0
+        msg_template = "Uploading file {}/{} - ({} of {}) - ({} kb uploaded / {} kb pending)"
         try:
             num = 0
             for a_file, file_stats in file_list_to_proc:
@@ -269,14 +272,18 @@ def action_upload_directory(_child_conn, directory):
                         return
                     else:
                         logger.warn("Ignoring received text '{}'".format(received))
+
                 _child_conn.send(msg_template.format(directory, a_file,
-                    num, len(file_list_to_proc)))
+                    num, len(file_list_to_proc), (bytes_uploaded / 1024),
+                    ((bytes_to_backup - bytes_uploaded) / 1024)))
                 logger.info("Starting upload of %s/%s", directory, a_file)
                 if DRY_RUN:
                     time.sleep(2)
                 else:
                     glacier_data = glacier.upload_file(directory, a_file)
                 logger.info("Finished upload of %s/%s", directory, a_file)
+                bytes_uploaded += file_stats.stats.st_size
+
                 if DRY_RUN:
                     pass
                 else:
