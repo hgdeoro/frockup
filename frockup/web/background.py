@@ -4,7 +4,7 @@ from multiprocessing import Process, Pipe
 import os
 
 
-ACTION_LAUNCH = 'launch'
+LAUNCH_BACKUP = 'launch'
 ACTION_GET_STATUS = 'get_status'
 
 PROCESS_STARTED = 'STARTED'
@@ -37,10 +37,10 @@ class ProcessController(object):
         data = self.send_msg({'action': ACTION_GET_STATUS})
         return data
 
-    def launch_process(self, directory_name):
+    def launch_backup(self, directory_name):
         # TODO: rename to 'sync_directory()' or something else
         assert os.path.exists(directory_name)
-        data = self.send_msg({'action': ACTION_LAUNCH,
+        data = self.send_msg({'action': LAUNCH_BACKUP,
             'directory': directory_name})
         return data
 
@@ -58,7 +58,7 @@ class ProcessController(object):
     def _handle_input(self, data):
         logging.info("_handle_input(): {}".format(data))
 
-        if data['action'] == ACTION_LAUNCH:
+        if data['action'] == LAUNCH_BACKUP:
             _parent_conn, _child_conn = Pipe()
             new_process = Process(target=action_upload_file, args=(_child_conn,
                 data['directory']))

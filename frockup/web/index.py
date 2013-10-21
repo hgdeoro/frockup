@@ -30,11 +30,11 @@ class Remote(object):
         data = PROCESS_CONTROLLER.get_background_process_status()
         return {'message': data}
 
-    def launch_process(self, function_args):
-        self.logger.info("launch_process() - %s", function_args)
+    def launch_backup(self, function_args):
+        self.logger.info("launch_backup() - %s", function_args)
         directory_name = function_args[0]
         assert os.path.exists(directory_name)
-        data = PROCESS_CONTROLLER.launch_process(directory_name)
+        data = PROCESS_CONTROLLER.launch_backup(directory_name)
         return data
 
     def load_directory(self, function_args):

@@ -95,11 +95,11 @@ frockup.controller('GlobalController', function($scope, $location, $timeout, $in
     };
 
     $scope.syncDirectory = function(directory) {
-        remoteService.callMethod('launch_process', directory.name).success(function(data) {
-            console.info("launch_process() OK");
+        remoteService.callMethod('launch_backup', directory.name).success(function(data) {
+            console.info("launch_backup() OK");
         }).error(function(data) {
             // TODO: add error message
-            console.warn("launch_process() ERROR");
+            console.warn("launch_backup() ERROR");
         });
 
     };
