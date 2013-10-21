@@ -11,6 +11,27 @@ PROCESS_STARTED = 'STARTED'
 PROCESS_FINISH_OK = 'FINISH_OK'
 PROCESS_FINISH_WITH_ERROR = 'FINISH_WITH_ERROR'
 
+#
+# Standard response:
+#  - ok (boolean)
+#  - error (boolean)
+#  - message (string)
+#
+
+
+def get_ok_response(status_msg, **kwargs):
+    """Utility method to generate *successfull* response"""
+    response = {'ok': True, 'error': False, 'message': status_msg}
+    response.update(**kwargs)
+    return response
+
+
+def get_error_response(error_msg, **kwargs):
+    """Utility method to generate *failed* response"""
+    response = {'ok': False, 'error': True, 'message': error_msg}
+    response.update(**kwargs)
+    return response
+
 
 class ProcessController(object):
 
@@ -30,14 +51,16 @@ class ProcessController(object):
         self.process_controller = Process(target=self.loop, args=(child_conn,))
         self.process_controller.start()
 
+    # Utility method - hides implementation details
     def get_background_process_status(self):
         """
-        Get data about running process
+        Get data about running process.
         This method is invoked in the WEB tier.
         """
         data = self.send_msg({'action': GET_STATUS})
         return data
 
+    # Utility method - hides implementation details
     def launch_backup(self, directory_name):
         """
         Launch the backup of a directory.
@@ -55,10 +78,17 @@ class ProcessController(object):
         This is a LOW LEVEL method. There are other methods that
         encasulates the call to this method
 
+        The serialization/deserialization is done
+        by the *multiprocessing* framework.
+
         This method is invoked in the WEB tier.
         This method is the entry point to communicate with the
         """
         logging.debug("send_msg() - msg: %s", msg)
+        # Check first subprocess is alive
+        if not self.process_controller.is_alive():
+            logging.warn("process_controller is NOT alive!")
+            return get_error_response('First subprocess is NOT alive.')
         self.parent_conn.send(msg)
         data = self.parent_conn.recv()
         return data
@@ -88,6 +118,7 @@ class ProcessController(object):
                 self._handle_cleanup(background_processes_in_child, finished_background_process)
         except:
             logging.exception("Exception detected in main loop of subprocess_handler()")
+            raise
 
     def _handle_message(self, background_processes_in_child, data):
         """
@@ -106,12 +137,12 @@ class ProcessController(object):
                                        'parent_conn': _parent_conn,
                                        'status': None,
                                        })
-            return 'launched'
+            return get_ok_response('Backup process launched')
 
         if data['action'] == GET_STATUS:
-            return '{} process running'.format(len(background_processes_in_child))
+            return get_ok_response('{} process running'.format(len(background_processes_in_child)))
 
-        return 'action_unknown'
+        return get_error_response("Unknown action: '{}'".format(data['action']))
 
     def _handle_cleanup(self, background_processes_in_child, finished_background_process):
         logging.debug("_handle_cleanup()")

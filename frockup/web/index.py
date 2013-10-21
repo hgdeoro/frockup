@@ -28,7 +28,7 @@ class Remote(object):
     def get_background_process_status(self, function_args):
         self.logger.debug("get_background_process_status() - %s", function_args)
         data = PROCESS_CONTROLLER.get_background_process_status()
-        return {'message': data}
+        return data
 
     def launch_backup(self, function_args):
         self.logger.info("launch_backup() - %s", function_args)
