@@ -26,7 +26,8 @@ class ProcessController(object):
 
     def start(self):
         """
-        Starts the process
+        Starts the process.
+        This method is invoked in the WEB tier.
         """
         logging.info("start()")
         self.parent_conn, child_conn = Pipe()
@@ -34,10 +35,18 @@ class ProcessController(object):
         self.process_controller.start()
 
     def get_background_process_status(self):
+        """
+        Get data about running process
+        This method is invoked in the WEB tier.
+        """
         data = self.send_msg({'action': ACTION_GET_STATUS})
         return data
 
     def launch_backup(self, directory_name):
+        """
+        Launch the backup of a directory.
+        This method is invoked in the WEB tier.
+        """
         # TODO: rename to 'sync_directory()' or something else
         assert os.path.exists(directory_name)
         data = self.send_msg({'action': LAUNCH_BACKUP,
@@ -49,14 +58,41 @@ class ProcessController(object):
         Sends a message and wait for the response
         This is a LOW LEVEL method. There are other methods that
         encasulates the call to this method
+
+        This method is invoked in the WEB tier.
+        This method is the entry point to communicate with the
         """
         logging.debug("send_msg() - msg: %s", msg)
         self.parent_conn.send(msg)
         data = self.parent_conn.recv()
         return data
 
-    def _handle_input(self, data):
-        logging.info("_handle_input(): {}".format(data))
+    def loop(self, child_conn):
+        """
+        This method is the 'target' method of `self.process_controller`.
+        This methods has a loop, receives the messages and call `_handle_message()`
+        This method is invoked in the FIRST SUBPROCESS (others sub-sub-processes
+        are the processes that do the actual work, like uploading files)
+        """
+        logging.info("loop()")
+
+        try:
+            while True:
+                poll_ok = child_conn.poll(2)
+                if poll_ok:
+                    data = child_conn.recv()
+                    try:
+                        ret = self._handle_message(data)
+                        child_conn.send(ret)
+                    except:
+                        logging.exception("Exception detected when handling request")
+                        child_conn.send('action_returned_error')
+                self._handle_cleanup()
+        except:
+            logging.exception("Exception detected in main loop of subprocess_handler()")
+
+    def _handle_message(self, data):
+        logging.info("_handle_message(): {}".format(data))
 
         if data['action'] == LAUNCH_BACKUP:
             _parent_conn, _child_conn = Pipe()
@@ -85,27 +121,6 @@ class ProcessController(object):
                 self.finished_background_process.append(
                     self.background_processes_in_child.remove(a_process))
 
-    def loop(self, child_conn):
-        """
-        Loop
-        """
-        logging.info("loop()")
-
-        try:
-            while True:
-                poll_ok = child_conn.poll(2)
-                if poll_ok:
-                    data = child_conn.recv()
-                    try:
-                        ret = self._handle_input(data)
-                        child_conn.send(ret)
-                    except:
-                        logging.exception("Exception detected when handling request")
-                        child_conn.send('action_returned_error')
-                self._handle_cleanup()
-        except:
-            logging.exception("Exception detected in main loop of subprocess_handler()")
-
 
 #===============================================================================
 # Actions
@@ -115,6 +130,7 @@ class ProcessController(object):
 
 def action_upload_file(_child_conn, directory):
     """
+    Uploads a file.
     """
     logging.info("action_upload_file(directory=%s)", directory)
     _child_conn.send(PROCESS_STARTED)
