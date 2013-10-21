@@ -137,6 +137,10 @@ class ProcessController(object):
         """
         logging.info("_handle_message(): {}".format(data))
 
+        #
+        # LAUNCH_BACKUP
+        #
+
         if data['action'] == LAUNCH_BACKUP:
             _parent_conn, _child_conn = Pipe()
             new_process = Process(target=action_upload_directory, args=(_child_conn,
@@ -147,16 +151,26 @@ class ProcessController(object):
                                        'child_conn': _child_conn,
                                        'parent_conn': _parent_conn,
                                        'status': None,
+                                       'directory': data['directory'],
                                        })
             return get_ok_response('Backup process launched')
+
+        #
+        # GET_STATUS
+        #
 
         if data['action'] == GET_STATUS:
             ret = get_ok_response('{} process running'.format(len(background_processes_in_child)))
             proc_status = []
             for item in background_processes_in_child:
-                proc_status.append({'pid': item['p'].pid, 'status': item['status']})
+                proc_status.append({'pid': item['p'].pid, 'status': item['status'],
+                    'directory': item['directory']})
             ret['proc_status'] = proc_status
             return ret
+
+        #
+        # (unknown)
+        #
 
         return get_error_response("Unknown action: '{}'".format(data['action']))
 
@@ -184,12 +198,12 @@ def action_upload_directory(_child_conn, directory):
     try:
         logger.info("action_upload_directory(directory=%s)", directory)
         _child_conn.send(PROCESS_STARTED)
-    
+
         ctx = Context()
         ctx.set_include_extensions(('jpg',))
         file_filter = FileFilter(ctx)
         local_metadata = LocalMetadata(ctx)
-    
+
         file_list_to_proc = []
         for a_file in os.listdir(directory):
             if not os.path.isfile(os.path.join(directory, a_file)):
@@ -198,7 +212,7 @@ def action_upload_directory(_child_conn, directory):
                 directory, a_file, file_filter, local_metadata, ctx)
             if should_proc:
                 file_list_to_proc.append(a_file)
-    
+
         msg_template = "Uploading file {} of {}"
         import time
         time.sleep(5)
