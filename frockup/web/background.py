@@ -1,11 +1,14 @@
 import logging
+import time
+import os
 
 from multiprocessing import Process, Pipe
-import os
+
 from frockup.common import Context
 from frockup.file_filter import FileFilter
 from frockup.local_metadata import LocalMetadata
 from frockup.main import _should_process_file
+from frockup.glacier import Glacier
 
 # Messages
 LAUNCH_BACKUP = 'launch'
@@ -224,6 +227,9 @@ class ProcessController(object):
 # Actions are the thins that should be done in subprocess and monitor upon completion
 #===============================================================================
 
+DRY_RUN = True
+
+
 def action_upload_directory(_child_conn, directory):
     """
     Uploads a directory.
@@ -237,25 +243,24 @@ def action_upload_directory(_child_conn, directory):
         ctx.set_include_extensions(('jpg',))
         file_filter = FileFilter(ctx)
         local_metadata = LocalMetadata(ctx)
+        glacier = Glacier(ctx)
 
         file_list_to_proc = []
         for a_file in os.listdir(directory):
             if not os.path.isfile(os.path.join(directory, a_file)):
                 continue
-            should_proc, _ = _should_process_file(
+            should_proc, file_stats = _should_process_file(
                 directory, a_file, file_filter, local_metadata, ctx)
             if should_proc:
                 logger.info("INCLUDING %s/%s", directory, a_file)
-                file_list_to_proc.append(a_file)
+                file_list_to_proc.append((a_file, file_stats))
             else:
                 logger.info("EXCLUDING %s/%s", directory, a_file)
 
         msg_template = "Uploading file {}/{} ({} of {})"
-        import time
-        time.sleep(1)
         try:
             num = 0
-            for a_file in file_list_to_proc:
+            for a_file, file_stats in file_list_to_proc:
                 num += 1
                 if _child_conn.poll():
                     received = _child_conn.recv()
@@ -266,8 +271,16 @@ def action_upload_directory(_child_conn, directory):
                         logger.warn("Ignoring received text '{}'".format(received))
                 _child_conn.send(msg_template.format(directory, a_file,
                     num, len(file_list_to_proc)))
-                logger.info("Uploading %s/%s", directory, a_file)
-                time.sleep(2)
+                logger.info("Starting upload of %s/%s", directory, a_file)
+                if DRY_RUN:
+                    time.sleep(2)
+                else:
+                    glacier_data = glacier.upload_file(directory, a_file)
+                logger.info("Finished upload of %s/%s", directory, a_file)
+                if DRY_RUN:
+                    pass
+                else:
+                    local_metadata.update_metadata(directory, a_file, file_stats, glacier_data)
             _child_conn.send(PROCESS_FINISH_OK)
         except:
             _child_conn.send(PROCESS_FINISH_WITH_ERROR)
