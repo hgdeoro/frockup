@@ -147,7 +147,12 @@ class ProcessController(object):
             return get_ok_response('Backup process launched')
 
         if data['action'] == GET_STATUS:
-            return get_ok_response('{} process running'.format(len(background_processes_in_child)))
+            ret = get_ok_response('{} process running'.format(len(background_processes_in_child)))
+            proc_status = []
+            for item in background_processes_in_child:
+                proc_status.append({'pid': item['p'].pid, 'status': item['status']})
+            ret['proc_status'] = proc_status
+            return ret
 
         return get_error_response("Unknown action: '{}'".format(data['action']))
 
@@ -173,9 +178,12 @@ def action_upload_file(_child_conn, directory):
     """
     logging.info("action_upload_file(directory=%s)", directory)
     _child_conn.send(PROCESS_STARTED)
+    import time
+    time.sleep(5)
     try:
-        import time
-        time.sleep(5)
+        for i in range(0, 10):
+            _child_conn.send('Iter {}'.format(i))
+            time.sleep(2)
         _child_conn.send(PROCESS_FINISH_OK)
     except:
         _child_conn.send(PROCESS_FINISH_WITH_ERROR)

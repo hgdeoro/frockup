@@ -50,6 +50,7 @@ frockup.controller('GlobalController', function($scope, $location, $timeout, $in
         show_completed : true,
         processing_directory : null,
         background_process_status : 'Not checked yet',
+        extended_status : null,
         alerts : [],
     };
 
@@ -152,7 +153,16 @@ frockup.controller('GlobalController', function($scope, $location, $timeout, $in
 
     $scope.getBackgroundProcessesStatus = function() {
         remoteService.callMethod('get_background_process_status').success(function(data) {
+            $scope.extras.extended_status = null;
             $scope.extras.background_process_status = data.ret.message;
+            if (data && data.ret && data.ret.proc_status) {
+                var i;
+                var msg = "";
+                for (i = 0; i < data.ret.proc_status.length; i++) {
+                    msg += "[" + data.ret.proc_status[i].pid + "] " + data.ret.proc_status[i].status + "\n";
+                }
+                $scope.extras.extended_status = msg;
+            }
         }).error(function(data) {
             $scope.extras.background_process_status = "Couldn't get status.";
         });
