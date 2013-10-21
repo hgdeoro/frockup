@@ -245,13 +245,18 @@ def action_upload_directory(_child_conn, directory):
             should_proc, _ = _should_process_file(
                 directory, a_file, file_filter, local_metadata, ctx)
             if should_proc:
+                logger.info("INCLUDING %s/%s", directory, a_file)
                 file_list_to_proc.append(a_file)
+            else:
+                logger.info("EXCLUDING %s/%s", directory, a_file)
 
-        msg_template = "Uploading file {} of {}"
+        msg_template = "Uploading file {}/{} ({} of {})"
         import time
-        time.sleep(5)
+        time.sleep(1)
         try:
-            for i in range(0, len(file_list_to_proc)):
+            num = 0
+            for a_file in file_list_to_proc:
+                num += 1
                 if _child_conn.poll():
                     received = _child_conn.recv()
                     if received == 'STOP':
@@ -259,7 +264,9 @@ def action_upload_directory(_child_conn, directory):
                         return
                     else:
                         logger.warn("Ignoring received text '{}'".format(received))
-                _child_conn.send(msg_template.format(i, len(file_list_to_proc)))
+                _child_conn.send(msg_template.format(directory, a_file,
+                    num, len(file_list_to_proc)))
+                logger.info("Uploading %s/%s", directory, a_file)
                 time.sleep(2)
             _child_conn.send(PROCESS_FINISH_OK)
         except:
