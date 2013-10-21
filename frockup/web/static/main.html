@@ -4,15 +4,21 @@
 		<input type="text" ng-model="extras.directory" style="width: 30em;">
 		<button type="button" ng-click="checkDirectory()"
 			class="btn btn-primary btn-xs">Refresh</button>
-    </div>
-    <div style="margin-top: 2px;">
-        <button type="button" ng-click="startBackgroundProcessesStatus()"
-            class="btn btn-primary btn-xs" ng-show="! extras.intervalCheckBackgroundProcesses">Start</button>
-        <button type="button" ng-click="stopBackgroundProcessesStatus()"
-            class="btn btn-primary btn-xs" ng-show="extras.intervalCheckBackgroundProcesses">Stop</button>
+	</div>
+	<div style="margin-top: 2px;">
+		<button type="button" ng-click="startBackgroundProcessesStatus()"
+			class="btn btn-primary btn-xs"
+			ng-show="! extras.intervalCheckBackgroundProcesses">Start</button>
+		<button type="button" ng-click="stopBackgroundProcessesStatus()"
+			class="btn btn-primary btn-xs"
+			ng-show="extras.intervalCheckBackgroundProcesses">Stop</button>
 
-        <button type="button" ng-click="getBackgroundProcessesStatus()"
-            class="btn btn-primary btn-xs">Check background processes</button>
+		<button type="button" ng-click="getBackgroundProcessesStatus()"
+			class="btn btn-primary btn-xs">Check background processes</button>
+
+		<button type="button" ng-click="stopAllProcesses()"
+			class="btn btn-danger btn-xs">Stop all processes</button>
+
 		<label><input type="checkbox" ng-model="extras.show_completed">&nbsp;Show
 			completed</label>
 	</div>
@@ -33,7 +39,6 @@
 			ng-bind="extras.processing_directory"></span></a>
 	</div>
 
-
 	<table ng-show="extras.directories" class="table table-condensed"
 		style="margin-top: 1em;">
 		<tr>
@@ -53,8 +58,7 @@
 				<div style="float: left;">{{ a_dir.name }}</div>
 				<div style="float: right;">
 					<button ng-show="a_dir.pending_count"
-						ng-click="syncDirectory(a_dir)"
-						class="btn btn-primary btn-xs">Sync</button>
+						ng-click="syncDirectory(a_dir)" class="btn btn-primary btn-xs">Sync</button>
 				</div>
 
 			</td>

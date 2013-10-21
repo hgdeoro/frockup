@@ -10,10 +10,12 @@ from frockup.main import _should_process_file
 # Messages
 LAUNCH_BACKUP = 'launch'
 GET_STATUS = 'get_status'
+STOP_ALL_PROCESSES = 'stop_all_processes'
 
 PROCESS_STARTED = 'STARTED'
 PROCESS_FINISH_OK = 'FINISH_OK'
 PROCESS_FINISH_WITH_ERROR = 'FINISH_WITH_ERROR'
+PROCESS_CANCELLED = 'PROCESS_CANCELLED'
 
 #
 # Standard response:
@@ -74,6 +76,15 @@ class ProcessController(object):
         assert os.path.exists(directory_name)
         data = self.send_msg({'action': LAUNCH_BACKUP,
             'directory': directory_name})
+        return data
+
+    # Utility method - hides implementation details
+    def stop_all_processes(self):
+        """
+        Stop all running processes.
+        This method is invoked in the WEB tier.
+        """
+        data = self.send_msg({'action': STOP_ALL_PROCESSES})
         return data
 
     def send_msg(self, msg):
@@ -169,6 +180,29 @@ class ProcessController(object):
             return ret
 
         #
+        # STOP_ALL_PROCESSES
+        #
+
+        if data['action'] == STOP_ALL_PROCESSES:
+            all_stopped = True
+            for item in background_processes_in_child:
+                if not item['p'].is_alive():
+                    logging.info("Won't send STOP to process {} - It's NOT alive".format(
+                        item['p'].pid))
+
+                logging.info("Will send STOP to process {}".format(item['p'].pid))
+                try:
+                    item['parent_conn'].send('STOP')
+                except:
+                    all_stopped = False
+                    logging.exception("STOP_ALL_PROCESSES: exception detected when "
+                        "sending STOP to process {}".format(item['p'].pid))
+            if all_stopped:
+                return get_ok_response('Stop sent to all the processes')
+            else:
+                return get_error_response("Couldn't send STOP to all processes")
+
+        #
         # (unknown)
         #
 
@@ -218,6 +252,13 @@ def action_upload_directory(_child_conn, directory):
         time.sleep(5)
         try:
             for i in range(0, len(file_list_to_proc)):
+                if _child_conn.poll():
+                    received = _child_conn.recv()
+                    if received == 'STOP':
+                        _child_conn.send(PROCESS_CANCELLED)
+                        return
+                    else:
+                        logger.warn("Ignoring received text '{}'".format(received))
                 _child_conn.send(msg_template.format(i, len(file_list_to_proc)))
                 time.sleep(2)
             _child_conn.send(PROCESS_FINISH_OK)

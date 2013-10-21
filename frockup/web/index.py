@@ -37,6 +37,11 @@ class Remote(object):
         data = PROCESS_CONTROLLER.launch_backup(directory_name)
         return data
 
+    def stop_all_processes(self, function_args):
+        self.logger.info("stop_all_processes() - %s", function_args)
+        data = PROCESS_CONTROLLER.stop_all_processes()
+        return data
+
     def load_directory(self, function_args):
         base_dir = function_args[0]
         assert os.path.exists(base_dir)

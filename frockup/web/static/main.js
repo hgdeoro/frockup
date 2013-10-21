@@ -163,6 +163,27 @@ frockup.controller('GlobalController', function($scope, $location, $timeout, $in
     };
 
     /*
+     * stopAllProcesses()
+     */
+
+    $scope.stopAllProcesses = function() {
+        remoteService.callMethod('stop_all_processes').success(function(data) {
+            console.info("stop_all_processes() OK");
+            if (data.ret.ok)
+                $scope.addSuccessAlert("" + data.ret.message);
+            else
+                $scope.addErrorAlert("" + data.ret.message);
+        }).error(function(data) {
+
+            if (data && data.ret && data.ret.message)
+                $scope.addErrorAlert("" + data.ret.message);
+            else
+                $scope.addErrorAlert("Couldn't launch backup");
+        });
+
+    };
+
+    /*
      * BackgroundProcessesStatus
      */
 
