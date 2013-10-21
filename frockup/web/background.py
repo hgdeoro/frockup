@@ -2,6 +2,10 @@ import logging
 
 from multiprocessing import Process, Pipe
 import os
+from frockup.common import Context
+from frockup.file_filter import FileFilter
+from frockup.local_metadata import LocalMetadata
+from frockup.main import _should_process_file
 
 # Messages
 LAUNCH_BACKUP = 'launch'
@@ -135,7 +139,7 @@ class ProcessController(object):
 
         if data['action'] == LAUNCH_BACKUP:
             _parent_conn, _child_conn = Pipe()
-            new_process = Process(target=action_upload_file, args=(_child_conn,
+            new_process = Process(target=action_upload_directory, args=(_child_conn,
                 data['directory']))
             new_process.start()
             background_processes_in_child.append({
@@ -172,18 +176,39 @@ class ProcessController(object):
 # Actions are the thins that should be done in subprocess and monitor upon completion
 #===============================================================================
 
-def action_upload_file(_child_conn, directory):
+def action_upload_directory(_child_conn, directory):
     """
-    Uploads a file.
+    Uploads a directory.
     """
-    logging.info("action_upload_file(directory=%s)", directory)
-    _child_conn.send(PROCESS_STARTED)
-    import time
-    time.sleep(5)
+    logger = logging.getLogger('action_upload_directory[{}]'.format(os.getpid()))
     try:
-        for i in range(0, 10):
-            _child_conn.send('Iter {}'.format(i))
-            time.sleep(2)
-        _child_conn.send(PROCESS_FINISH_OK)
+        logger.info("action_upload_directory(directory=%s)", directory)
+        _child_conn.send(PROCESS_STARTED)
+    
+        ctx = Context()
+        ctx.set_include_extensions(('jpg',))
+        file_filter = FileFilter(ctx)
+        local_metadata = LocalMetadata(ctx)
+    
+        file_list_to_proc = []
+        for a_file in os.listdir(directory):
+            if not os.path.isfile(os.path.join(directory, a_file)):
+                continue
+            should_proc, _ = _should_process_file(
+                directory, a_file, file_filter, local_metadata, ctx)
+            if should_proc:
+                file_list_to_proc.append(a_file)
+    
+        msg_template = "Uploading file {} of {}"
+        import time
+        time.sleep(5)
+        try:
+            for i in range(0, len(file_list_to_proc)):
+                _child_conn.send(msg_template.format(i, len(file_list_to_proc)))
+                time.sleep(2)
+            _child_conn.send(PROCESS_FINISH_OK)
+        except:
+            _child_conn.send(PROCESS_FINISH_WITH_ERROR)
     except:
-        _child_conn.send(PROCESS_FINISH_WITH_ERROR)
+        logger.exception("Exception detected")
+        raise
