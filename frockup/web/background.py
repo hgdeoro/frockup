@@ -227,7 +227,7 @@ class ProcessController(object):
 # Actions are the thins that should be done in subprocess and monitor upon completion
 #===============================================================================
 
-DRY_RUN = False
+DRY_RUN = True
 
 
 def action_upload_directory(_child_conn, directory):
@@ -260,7 +260,9 @@ def action_upload_directory(_child_conn, directory):
                 logger.info("EXCLUDING %s/%s", directory, a_file)
 
         bytes_uploaded = 0
-        msg_template = "Uploading file {}/{} - ({} of {}) - ({} kb uploaded / {} kb pending)"
+        start_time = time.time()
+        msg_template = "Uploading file {}/{} - ({} of {}) - ({} kb uploaded / {} kb pending)" + \
+            " - Speed: {} kb/sec"
         try:
             num = 0
             for a_file, file_stats in file_list_to_proc:
@@ -273,9 +275,11 @@ def action_upload_directory(_child_conn, directory):
                     else:
                         logger.warn("Ignoring received text '{}'".format(received))
 
+                bytes_pending_upload = bytes_to_backup - bytes_uploaded
+                bytes_per_sec = int(bytes_uploaded / (time.time() - start_time))
                 _child_conn.send(msg_template.format(directory, a_file,
                     num, len(file_list_to_proc), (bytes_uploaded / 1024),
-                    ((bytes_to_backup - bytes_uploaded) / 1024)))
+                    (bytes_pending_upload / 1024), (bytes_per_sec / 1024)))
                 logger.info("Starting upload of %s/%s", directory, a_file)
                 if DRY_RUN:
                     time.sleep(2)
