@@ -8,8 +8,7 @@ from frockup.file_filter import FileFilter
 from frockup.common import Context
 from frockup.main import _should_process_file
 from frockup.local_metadata import LocalMetadata
-from frockup.web.background import ACTION_GET_STATUS, ACTION_LAUNCH, \
-    ProcessController
+from frockup.web.background import ProcessController
 
 app = Flask(__name__)
 app.debug = True
@@ -27,13 +26,15 @@ class Remote(object):
         self.logger = logging.getLogger('Remote')
 
     def get_background_process_status(self, function_args):
-        data = PROCESS_CONTROLLER.send_msg({'action': ACTION_GET_STATUS})
+        self.logger.debug("get_background_process_status() - %s", function_args)
+        data = PROCESS_CONTROLLER.get_background_process_status()
         return {'message': data}
 
     def launch_process(self, function_args):
         self.logger.info("launch_process() - %s", function_args)
-        data = PROCESS_CONTROLLER.send_msg({'action': ACTION_LAUNCH,
-            'directory': 'd', 'filename': 'f'})
+        directory_name = function_args[0]
+        assert os.path.exists(directory_name)
+        data = PROCESS_CONTROLLER.launch_process(directory_name)
         return data
 
     def load_directory(self, function_args):

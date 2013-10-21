@@ -1,6 +1,7 @@
 import logging
 
 from multiprocessing import Process, Pipe
+import os
 
 
 ACTION_LAUNCH = 'launch'
@@ -32,9 +33,22 @@ class ProcessController(object):
         self.process_controller = Process(target=self.loop, args=(child_conn,))
         self.process_controller.start()
 
+    def get_background_process_status(self):
+        data = self.send_msg({'action': ACTION_GET_STATUS})
+        return data
+
+    def launch_process(self, directory_name):
+        # TODO: rename to 'sync_directory()' or something else
+        assert os.path.exists(directory_name)
+        data = self.send_msg({'action': ACTION_LAUNCH,
+            'directory': directory_name})
+        return data
+
     def send_msg(self, msg):
         """
         Sends a message and wait for the response
+        This is a LOW LEVEL method. There are other methods that
+        encasulates the call to this method
         """
         logging.debug("send_msg() - msg: %s", msg)
         self.parent_conn.send(msg)
@@ -47,7 +61,7 @@ class ProcessController(object):
         if data['action'] == ACTION_LAUNCH:
             _parent_conn, _child_conn = Pipe()
             new_process = Process(target=action_upload_file, args=(_child_conn,
-                data['directory'], data['filename']))
+                data['directory']))
             new_process.start()
             self.background_processes_in_child.append({
                                        'p': new_process,
@@ -99,10 +113,10 @@ class ProcessController(object):
 # Actions are the thins that should be done in subprocess and monitor upon completion
 #===============================================================================
 
-def action_upload_file(_child_conn, directory, filename):
+def action_upload_file(_child_conn, directory):
     """
     """
-    logging.info("action_upload_file()")
+    logging.info("action_upload_file(directory=%s)", directory)
     _child_conn.send(PROCESS_STARTED)
     try:
         import time
