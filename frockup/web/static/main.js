@@ -50,8 +50,47 @@ frockup.controller('GlobalController', function($scope, $location, $timeout, $in
         show_completed : true,
         processing_directory : null,
         background_process_status : 'Not checked yet',
+        alerts : [],
     };
 
+    /*
+     * Alerts
+     */
+    $scope.closeAlert = function(index) {
+        $scope.extras.alerts.splice(index, 1);
+    };
+
+    $scope.addErrorAlert = function(message) {
+        $scope.extras.alerts.push({
+            msg : message,
+            type : 'danger'
+        });
+    };
+
+    $scope.addSuccessAlert = function(message) {
+        $scope.extras.alerts.push({
+            msg : message,
+            type : 'success'
+        });
+    };
+
+    $scope.addInfoAlert = function(message) {
+        $scope.extras.alerts.push({
+            msg : message,
+            type : 'info'
+        });
+    };
+
+    $scope.addWarningAlert = function(message) {
+        $scope.extras.alerts.push({
+            msg : message,
+            type : 'warning'
+        });
+    };
+
+    /*
+     * 
+     */
     $scope.addDirToLocalHistory = function(directory) {
         var frockupDirHistory = localStorage.getItem('frockupDirHistory');
         if (frockupDirHistory == null) {
@@ -97,9 +136,16 @@ frockup.controller('GlobalController', function($scope, $location, $timeout, $in
     $scope.syncDirectory = function(directory) {
         remoteService.callMethod('launch_backup', directory.name).success(function(data) {
             console.info("launch_backup() OK");
+            if (data.ret.ok)
+                $scope.addSuccessAlert("" + data.ret.message);
+            else
+                $scope.addErrorAlert("" + data.ret.message);
         }).error(function(data) {
-            // TODO: add error message
-            console.warn("launch_backup() ERROR");
+
+            if (data && data.ret && data.ret.message)
+                $scope.addErrorAlert("" + data.ret.message);
+            else
+                $scope.addErrorAlert("Couldn't launch backup");
         });
 
     };
