@@ -49,27 +49,30 @@ class Remote(object):
         directories = []
         files = {}
         for root, _, files in os.walk(base_dir):
-            self.local_metadata._opendb(root)
-            file_list = []
-            ignored_count = 0
-            updated_count = 0
-            pending_count = 0
-            for a_file in files:
-                should_proc, _ = _should_process_file(root, a_file, self.file_filter,
-                                                      self.local_metadata, self.ctx)
-                if should_proc:
-                    pending_count += 1
-
-            directory = {
-                'name': root,
-                'files': files,
-                'files_count': len(files),
-                'file_list': file_list,
-                'ignored_count': ignored_count,
-                'updated_count': updated_count,
-                'pending_count': pending_count,
-            }
-            directories.append(directory)
+            try:
+                self.local_metadata._opendb(root)
+                file_list = []
+                ignored_count = 0
+                updated_count = 0
+                pending_count = 0
+                for a_file in files:
+                    should_proc, _ = _should_process_file(root, a_file, self.file_filter,
+                                                          self.local_metadata, self.ctx)
+                    if should_proc:
+                        pending_count += 1
+    
+                directory = {
+                    'name': root,
+                    'files': files,
+                    'files_count': len(files),
+                    'file_list': file_list,
+                    'ignored_count': ignored_count,
+                    'updated_count': updated_count,
+                    'pending_count': pending_count,
+                }
+                directories.append(directory)
+            finally:
+                self.local_metadata.close()
 
         return {'directories': directories}
 

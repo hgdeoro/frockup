@@ -84,7 +84,12 @@ class LocalMetadata():
         db_filename = os.path.join(directory, '.frockup.gdbm')
         logger.debug("Opening metadata DB at '%s'", db_filename)
         self.last_directory = directory
-        self.database = gdbm.open(db_filename, 'c')
+        try:
+            self.database = gdbm.open(db_filename, 'c')
+        except:
+            logger.exception("gdbm.open() failed when trying to open DB {}".format(
+                db_filename))
+            raise
 
     def _get_filename_data(self, filename):
         try:

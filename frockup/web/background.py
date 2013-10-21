@@ -227,7 +227,7 @@ class ProcessController(object):
 # Actions are the thins that should be done in subprocess and monitor upon completion
 #===============================================================================
 
-DRY_RUN = True
+DRY_RUN = False
 
 
 def action_upload_directory(_child_conn, directory):
