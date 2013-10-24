@@ -175,9 +175,15 @@ class ProcessController(object):
         if data['action'] == GET_STATUS:
             ret = get_ok_response('{} process running'.format(len(background_processes_in_child)))
             proc_status = []
+            # Processes running
             for item in background_processes_in_child:
                 proc_status.append({'pid': item['p'].pid, 'status': item['status'],
                     'directory': item['directory']})
+            # Processes waiting
+            for data in self.pending_uploads:
+                proc_status.append({'pid': -1, 'status': 'WAITING - Directory: {}'.format(
+                    data['directory']), 'directory': data['directory']})
+
             ret['proc_status'] = proc_status
             return ret
 
