@@ -54,6 +54,10 @@ class ProcessController(object):
         self.process_controller = None
         # Connection used to send commands to controller
         self.parent_conn = None
+        # Uploads not started because of concurrent limit (see `concurrent_uploads`)
+        self.pending_uploads = []
+        # Max number of concurrent uploads
+        self.concurrent_uploads = 3
 
     def start(self):
         """
@@ -161,18 +165,8 @@ class ProcessController(object):
         #
 
         if data['action'] == LAUNCH_BACKUP:
-            _parent_conn, _child_conn = Pipe()
-            new_process = Process(target=action_upload_directory, args=(_child_conn,
-                data['directory']))
-            new_process.start()
-            background_processes_in_child.append({
-                                       'p': new_process,
-                                       'child_conn': _child_conn,
-                                       'parent_conn': _parent_conn,
-                                       'status': None,
-                                       'directory': data['directory'],
-                                       })
-            return get_ok_response('Backup process launched')
+            self.pending_uploads.append(data)
+            return get_ok_response('Backup process scheduled')
 
         #
         # GET_STATUS
@@ -224,6 +218,21 @@ class ProcessController(object):
             if not a_process['p'].is_alive():
                 finished_background_process.append(
                     background_processes_in_child.remove(a_process))
+
+        logging.debug("Start new process (if any)")
+        while self.pending_uploads and len(background_processes_in_child) < self.concurrent_uploads:
+            data = self.pending_uploads.pop(0)
+            _parent_conn, _child_conn = Pipe()
+            new_process = Process(target=action_upload_directory, args=(_child_conn,
+                data['directory']))
+            new_process.start()
+            background_processes_in_child.append({
+                                       'p': new_process,
+                                       'child_conn': _child_conn,
+                                       'parent_conn': _parent_conn,
+                                       'status': None,
+                                       'directory': data['directory'],
+                                       })
 
 
 #===============================================================================
