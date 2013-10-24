@@ -83,10 +83,12 @@ class LocalMetadata():
 
         db_filename = os.path.join(directory, '.frockup.gdbm')
         logger.debug("Opening metadata DB at '%s'", db_filename)
-        self.last_directory = directory
         try:
+            self.last_directory = directory
             self.database = gdbm.open(db_filename, 'c')
         except:
+            self.last_directory = None
+            self.database = None
             logger.exception("gdbm.open() failed when trying to open DB {}".format(
                 db_filename))
             raise
@@ -147,8 +149,8 @@ class LocalMetadata():
             logger.warn("File changed while uploading: %s/%s", directory, filename)
 
     def close(self):
-        if self.database:
-            logger.debug("Closing database...")
+        if self.database is not None:
+            logger.debug("Closing database at %s...", self.last_directory)
             self.database.close()
             self.database = None
             self.last_directory = None
