@@ -44,10 +44,11 @@
 		<tr>
 			<th width="1%"><i class="glyphicon glyphicon-check"></i></th>
 			<th width="60%">Directory</th>
-			<th width="10%" class="r">Files</th>
-			<th width="10%" class="r">Ignored</th>
-			<th width="10%" class="r">Uploaded</th>
-			<th width="10%" class="r">Pending</th>
+			<th width="8%" class="r">Files</th>
+			<th width="8%" class="r">Ignored</th>
+			<th width="8%" class="r">Uploaded</th>
+            <th width="8%" class="r">Pending</th>
+            <th width="8%" class="r">Pending</th>
 		</tr>
 		<tr ng-show="extras.show_completed || a_dir.pending_count"
 			ng-repeat="a_dir in extras.directories"
@@ -65,7 +66,8 @@
 			<td class="r">{{ a_dir.files_count }}</td>
 			<td class="r">{{ a_dir.ignored_count }}</td>
 			<td class="r">{{ a_dir.updated_count }}</td>
-			<td class="r">{{ a_dir.pending_count }}</td>
+            <td class="r">{{ a_dir.pending_count }}</td>
+            <td class="r">{{ a_dir.pending_bytes|as_bytes }}</td>
 		</tr>
 	</table>
 

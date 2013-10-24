@@ -55,6 +55,7 @@ class Remote(object):
                 ignored_count = 0
                 updated_count = 0
                 pending_count = 0
+                pending_bytes = 0
                 for a_file in files:
                     should_proc, file_stats = _should_process_file(root, a_file, self.file_filter,
                                                           self.local_metadata, self.ctx)
@@ -63,14 +64,14 @@ class Remote(object):
                         # Excluido!
                         ignored_count += 1
                     else:
-                        assert file_stats is not None
                         if should_proc is True:
                             pending_count += 1
+                            pending_bytes += file_stats.stats.st_size
                         elif should_proc is False:
                             updated_count += 1
                         else:
                             assert False, "Invalid value for should_proc: {}".format(should_proc)
-    
+
                 directory = {
                     'name': root,
                     'files': files,
@@ -79,6 +80,7 @@ class Remote(object):
                     'ignored_count': ignored_count,
                     'updated_count': updated_count,
                     'pending_count': pending_count,
+                    'pending_bytes': pending_bytes,
                 }
                 directories.append(directory)
             finally:
