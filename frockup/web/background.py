@@ -10,6 +10,11 @@ from frockup.local_metadata import LocalMetadata
 from frockup.main import _should_process_file
 from frockup.glacier import Glacier
 
+DRY_RUN = 'DRY_RUN' in os.environ
+
+if DRY_RUN:
+    logging.warn("DRY_RUN activated. No real upload will be done")
+
 # Messages
 LAUNCH_BACKUP = 'launch'
 GET_STATUS = 'get_status'
@@ -226,8 +231,6 @@ class ProcessController(object):
 #-------------------------------------------------------------------------------
 # Actions are the thins that should be done in subprocess and monitor upon completion
 #===============================================================================
-
-DRY_RUN = False
 
 
 def action_upload_directory(_child_conn, directory):
