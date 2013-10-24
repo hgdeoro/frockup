@@ -56,10 +56,20 @@ class Remote(object):
                 updated_count = 0
                 pending_count = 0
                 for a_file in files:
-                    should_proc, _ = _should_process_file(root, a_file, self.file_filter,
+                    should_proc, file_stats = _should_process_file(root, a_file, self.file_filter,
                                                           self.local_metadata, self.ctx)
-                    if should_proc:
-                        pending_count += 1
+
+                    if (should_proc, file_stats) == (False, None):
+                        # Excluido!
+                        ignored_count += 1
+                    else:
+                        assert file_stats is not None
+                        if should_proc is True:
+                            pending_count += 1
+                        elif should_proc is False:
+                            updated_count += 1
+                        else:
+                            assert False, "Invalid value for should_proc: {}".format(should_proc)
     
                 directory = {
                     'name': root,
