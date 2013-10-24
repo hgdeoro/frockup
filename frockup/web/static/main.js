@@ -22,6 +22,9 @@ frockup.config(function($routeProvider) {
 
 });
 
+//
+// Based on https://gist.github.com/thomseddon/3511330
+//
 frockup.filter('as_bytes', function() {
     return function(bytes, precision) {
         if (isNaN(parseFloat(bytes)) || !isFinite(bytes))
