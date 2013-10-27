@@ -10,10 +10,9 @@ from frockup.main import _should_process_file
 from frockup.local_metadata import LocalMetadata
 from frockup.web.background import ProcessController
 
-app = Flask(__name__)
-app.debug = True
-
 PROCESS_CONTROLLER = ProcessController()
+
+app = Flask(__name__)
 
 
 class Remote(object):
@@ -125,16 +124,29 @@ def callMethod():
     return jsonify({'ret': to_return, 'exc': exception_traceback})
 
 
-if __name__ == '__main__':
+def setup_logging():
+    logging.basicConfig(level=logging.INFO)
+    logging.root.setLevel(logging.INFO)
+    for h in logging.root.handlers:
+        if isinstance(h, logging.StreamHandler):
+            h.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(name)s - %(message)s'))
+
+
+def main():
+    setup_logging()
+
+    if 'FROCKUP_DEBUG' in os.environ:
+        logging.info("Setting 'app.debug = True'")
+        app.debug = True
+
     #    ch = logging.StreamHandler()
     #    ch.setLevel(logging.INFO)
     #    formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
     #    ch.setFormatter(formatter)
     #    logging.root.addHandler(ch)
-    logging.root.setLevel(logging.INFO)
-    for h in logging.root.handlers:
-        if isinstance(h, logging.StreamHandler):
-            h.setFormatter(logging.Formatter('%(asctime)s [%(levelname)s] %(name)s - %(message)s'))
     logging.info("Starting...")
     PROCESS_CONTROLLER.start()
     app.run()
+
+if __name__ == '__main__':
+    main()
