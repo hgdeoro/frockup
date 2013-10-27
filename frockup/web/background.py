@@ -10,10 +10,10 @@ from frockup.local_metadata import LocalMetadata
 from frockup.main import _should_process_file
 from frockup.glacier import Glacier
 
-DRY_RUN = 'DRY_RUN' in os.environ
+DRY_RUN = 'FROCKUP_DRY_RUN' in os.environ
 
 if DRY_RUN:
-    logging.warn("DRY_RUN activated. No real upload will be done")
+    logging.warn("FROCKUP_DRY_RUN activated. No real upload will be done")
 
 # Messages
 LAUNCH_BACKUP = 'launch'
