@@ -1,5 +1,8 @@
 #!/bin/bash
 
+echo "ERROR: not supported yet"
+exit 1
+
 BASEDIR=$(cd $(dirname $0); pwd)
 
 . $BASEDIR/virtualenv/bin/activate
