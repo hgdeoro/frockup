@@ -57,7 +57,7 @@ class ProcessController(object):
         # Uploads not started because of concurrent limit (see `concurrent_uploads`)
         self.pending_uploads = []
         # Max number of concurrent uploads
-        self.concurrent_uploads = 3
+        self.concurrent_uploads = int(os.environ.get('FROCKUP_CONCURRENT_UPLOADS', '3'))
 
     def start(self):
         """
