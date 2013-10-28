@@ -193,6 +193,7 @@ class ProcessController(object):
         #
 
         if data['action'] == STOP_ALL_PROCESSES:
+            self.pending_uploads = []
             all_stopped = True
             for item in background_processes_in_child:
                 if not item['p'].is_alive():
@@ -206,6 +207,7 @@ class ProcessController(object):
                     all_stopped = False
                     logging.exception("STOP_ALL_PROCESSES: exception detected when "
                         "sending STOP to process {}".format(item['p'].pid))
+
             if all_stopped:
                 return get_ok_response('Stop sent to all the processes')
             else:
