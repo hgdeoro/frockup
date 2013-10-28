@@ -29,7 +29,7 @@ frockup.filter('as_bytes', function() {
     return function(bytes, precision) {
         if (isNaN(parseFloat(bytes)) || !isFinite(bytes))
             return '-';
-        if(parseFloat(bytes) == 0.0)
+        if (parseFloat(bytes) == 0.0)
             return '0 bytes';
         if (typeof precision === 'undefined')
             precision = 1;
@@ -150,12 +150,26 @@ frockup.controller('GlobalController', function($scope, $location, $timeout, $in
         $scope.addDirToLocalHistory($scope.extras.directory);
 
         remoteService.callMethod('load_directory', $scope.extras.directory).success(function(data) {
-            $scope.extras.spinner = false;
-            $scope.extras.directories = data.ret.directories;
-            $scope.extras.directories_by_dirname = {};
-            var i = 0;
-            for (i = 0; i < data.ret.directories.length; i++) {
-                $scope.extras.directories_by_dirname[data.ret.directories[i].xxxxxxxxxx] = data.ret.directories[i];
+            if (data.ret) {
+                $scope.extras.spinner = false;
+                $scope.extras.directories = data.ret.directories;
+                $scope.extras.directories_by_dirname = {};
+                var i = 0;
+                for (i = 0; i < data.ret.directories.length; i++) {
+                    // directory = {
+                    // 'name': root,
+                    // 'files': files,
+                    // 'files_count': len(files),
+                    // 'file_list': file_list,
+                    // 'ignored_count': ignored_count,
+                    // 'updated_count': updated_count,
+                    // 'pending_count': pending_count,
+                    // 'pending_bytes': pending_bytes,
+                    // }
+                    $scope.extras.directories_by_dirname[data.ret.directories[i].name] = data.ret.directories[i];
+                }
+            } else {
+                $scope.addErrorAlert("Couldn't load directory");
             }
 
         }).error(function(data) {
@@ -172,10 +186,11 @@ frockup.controller('GlobalController', function($scope, $location, $timeout, $in
     $scope.syncDirectory = function(directory) {
         remoteService.callMethod('launch_backup', directory.name).success(function(data) {
             console.info("launch_backup() OK");
-            if (data.ret.ok)
+            if (data.ret && data.ret.ok) {
                 $scope.addSuccessAlert("" + data.ret.message);
-            else
+            } else {
                 $scope.addErrorAlert("" + data.ret.message);
+            }
         }).error(function(data) {
 
             if (data && data.ret && data.ret.message)
@@ -193,7 +208,7 @@ frockup.controller('GlobalController', function($scope, $location, $timeout, $in
     $scope.stopAllProcesses = function() {
         remoteService.callMethod('stop_all_processes').success(function(data) {
             console.info("stop_all_processes() OK");
-            if (data.ret.ok)
+            if (data.ret && data.ret.ok)
                 $scope.addSuccessAlert("" + data.ret.message);
             else
                 $scope.addErrorAlert("" + data.ret.message);
@@ -224,10 +239,10 @@ frockup.controller('GlobalController', function($scope, $location, $timeout, $in
                 var msg = "";
                 for (i = 0; i < data.ret.proc_status.length; i++) {
                     msg += "[" + data.ret.proc_status[i].pid + "] " + data.ret.proc_status[i].status + "\n";
-                    // @@@@@@@@@@@@@@@ ACA QUEDE @@@@@@@@@@@@@@@
-                    // $scope.extras.directories_by_dirname[data.ret.proc_status[i].directory].is_uploading
-                    // = True;
-                    // @@@@@@@@@@@@@@@ ACA QUEDE @@@@@@@@@@@@@@@
+                    try {
+                        $scope.extras.directories_by_dirname[data.ret.proc_status[i].directory].is_uploading = true;
+                    } catch (e) {
+                    }
                 }
                 $scope.extras.extended_status = msg;
             }
