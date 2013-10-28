@@ -49,7 +49,7 @@ class Remote(object):
         files = {}
         for root, _, files in os.walk(base_dir):
             try:
-                self.local_metadata._opendb(root)
+                self.local_metadata._opendb(root, try_ro_on_error=True)
                 file_list = []
                 ignored_count = 0
                 updated_count = 0
