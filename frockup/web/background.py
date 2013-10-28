@@ -166,7 +166,8 @@ class ProcessController(object):
 
         if data['action'] == LAUNCH_BACKUP:
             self.pending_uploads.append(data)
-            return get_ok_response('Backup process scheduled')
+            last_dir = os.path.split(data['directory'])[1]
+            return get_ok_response("Backup of '{}' scheduled".format(last_dir))
 
         #
         # GET_STATUS

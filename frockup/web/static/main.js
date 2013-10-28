@@ -63,6 +63,7 @@ frockup.controller('GlobalController', function($scope, $location, $timeout, $in
         directory : '',
         spinner : false,
         directories : [],
+        directories_by_dirname : {},
         show_completed : true,
         processing_directory : null,
         background_process_status : 'Not checked yet',
@@ -151,9 +152,16 @@ frockup.controller('GlobalController', function($scope, $location, $timeout, $in
         remoteService.callMethod('load_directory', $scope.extras.directory).success(function(data) {
             $scope.extras.spinner = false;
             $scope.extras.directories = data.ret.directories;
+            $scope.extras.directories_by_dirname = {};
+            var i = 0;
+            for (i = 0; i < data.ret.directories.length; i++) {
+                $scope.extras.directories_by_dirname[data.ret.directories[i].xxxxxxxxxx] = data.ret.directories[i];
+            }
+
         }).error(function(data) {
             $scope.extras.spinner = false;
             $scope.extras.directories = [];
+            $scope.extras.directories_by_dirname = {};
         });
     };
 
@@ -208,10 +216,18 @@ frockup.controller('GlobalController', function($scope, $location, $timeout, $in
             $scope.extras.extended_status = null;
             $scope.extras.background_process_status = data.ret.message;
             if (data && data.ret && data.ret.proc_status) {
+                // data.ret.proc_status[x].pid
+                // data.ret.proc_status[x].status
+                // data.ret.proc_status[x].directory
+                // $scope.extras.directories
                 var i;
                 var msg = "";
                 for (i = 0; i < data.ret.proc_status.length; i++) {
                     msg += "[" + data.ret.proc_status[i].pid + "] " + data.ret.proc_status[i].status + "\n";
+                    // @@@@@@@@@@@@@@@ ACA QUEDE @@@@@@@@@@@@@@@
+                    // $scope.extras.directories_by_dirname[data.ret.proc_status[i].directory].is_uploading
+                    // = True;
+                    // @@@@@@@@@@@@@@@ ACA QUEDE @@@@@@@@@@@@@@@
                 }
                 $scope.extras.extended_status = msg;
             }
