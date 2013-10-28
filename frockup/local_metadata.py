@@ -55,6 +55,7 @@ class LocalMetadata():
         self.ctx = ctx
         self.last_directory = None
         self.database = None
+        self.opened_ro = False
         assert isinstance(self.ctx, Context)
 
     def _stats_equals(self, stats1, stats2):
@@ -65,12 +66,17 @@ class LocalMetadata():
         return (file_stats.st_size == local_metadata.get('stats.st_size', None)
             and file_stats.st_mtime == local_metadata.get('stats.st_mtime', None))
 
-    def _opendb(self, directory):
+    def _opendb(self, directory, try_ro_on_error=False):
         if self.database is None:
             assert self.last_directory is None
             # continue, to open the DB
         else:
+            should_reopen = False
             if self.last_directory != directory:
+                should_reopen = True
+            if self.opened_ro is True and not try_ro_on_error:
+                should_reopen = True
+            if should_reopen:
                 # close the old DB
                 assert self.database is not None
                 self.database.close()
@@ -81,11 +87,21 @@ class LocalMetadata():
                 # just return, the current DB is the good one
                 return
 
+        self.opened_ro = False
         db_filename = os.path.join(directory, '.frockup.gdbm')
         logger.debug("Opening metadata DB at '%s'", db_filename)
         try:
             self.last_directory = directory
-            self.database = gdbm.open(db_filename, 'c')
+            try:
+                # First, try R/W
+                self.database = gdbm.open(db_filename, 'c')
+            except:
+                if try_ro_on_error:
+                    # If `try_ro_on_error`, try R/O
+                    self.database = gdbm.open(db_filename, 'ru')
+                    self.opened_ro = True
+                else:
+                    raise
         except:
             self.last_directory = None
             self.database = None
@@ -111,7 +127,7 @@ class LocalMetadata():
         full_filename = os.path.join(directory, filename)
         assert os.path.isfile(full_filename)
         file_stats = os.stat(full_filename)
-        self._opendb(directory)
+        self._opendb(directory, try_ro_on_error=True)
         data = self._get_filename_data(filename)
 
         if self._file_stats_and_local_metadata_equals(file_stats, data):
