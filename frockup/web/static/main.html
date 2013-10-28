@@ -58,6 +58,7 @@
 			<td>
 				<div style="float: left;">{{ a_dir.name }}</div>
 				<div style="float: right;">
+				    <i ng-show="a_dir.is_uploading" class="glyphicon glyphicon-upload"></i>
 					<button ng-show="a_dir.pending_count && ! a_dir.is_uploading"
 						ng-click="syncDirectory(a_dir)" class="btn btn-primary btn-xs">Sync</button>
 				</div>
